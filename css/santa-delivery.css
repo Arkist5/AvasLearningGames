@@ -1,0 +1,395 @@
+/* ─── Spelling Input System (used by Santa's Present Delivery) ─── */
+
+/* Spelling input area layout */
+.spelling-input-area {
+  background: white;
+  padding: var(--space-md);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  z-index: 50;
+  position: relative;
+}
+
+/* Prompt display (emoji or word) */
+.spelling-prompt {
+  text-align: center;
+  margin-bottom: var(--space-sm);
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.spelling-emoji {
+  font-size: 2.5rem;
+  animation: popIn 0.4s ease-out;
+}
+
+.spelling-word-display {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--color-primary);
+  letter-spacing: 4px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Speak button */
+.spelling-speak-btn {
+  display: block;
+  margin: 0 auto var(--space-sm);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-light);
+  color: white;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.2);
+}
+
+.spelling-speak-btn:active {
+  background: var(--color-primary);
+  transform: scale(0.9);
+}
+
+/* ─── Answer Slots ─── */
+
+.spelling-slots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.spelling-slot {
+  width: 38px;
+  height: 44px;
+  border: 3px solid #dfe6e9;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--color-text);
+  background: #f8f9fa;
+  transition: all 0.15s ease;
+}
+
+.spelling-slot.filled {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  color: white;
+  animation: popIn 0.2s ease-out;
+}
+
+.spelling-slot.filled.correct {
+  border-color: var(--color-success);
+  background: var(--color-success);
+}
+
+.spelling-slot.wrong {
+  border-color: var(--color-danger);
+  background: rgba(225, 112, 85, 0.15);
+  color: var(--color-danger);
+  animation: shake 0.4s ease;
+}
+
+.spelling-slot.complete {
+  border-color: var(--color-success);
+  background: var(--color-success);
+  color: white;
+  animation: celebration 0.5s ease;
+}
+
+/* ─── Scramble Tiles ─── */
+
+.spelling-input-zone {
+  min-height: 60px;
+}
+
+.spelling-tile-tray {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.spelling-tile {
+  width: 44px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: #ffeaa7;
+  color: #2d3436;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease;
+}
+
+.spelling-tile:active {
+  transform: scale(0.9);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.spelling-tile.used {
+  opacity: 0.3;
+  transform: scale(0.85);
+  pointer-events: none;
+}
+
+/* ─── QWERTY Keyboard ─── */
+
+.spelling-keyboard {
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.spelling-kb-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.spelling-kb-key {
+  min-width: 32px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background: #f1f3f5;
+  color: var(--color-text);
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+  padding: 0 4px;
+}
+
+.spelling-kb-key:active {
+  background: #dfe6e9;
+  transform: scale(0.92);
+}
+
+.kb-backspace {
+  min-width: 48px;
+  background: #ffeaa7;
+  color: #d35400;
+  font-size: 1.1rem;
+}
+
+/* ─── Santa Star Bar (in-scene) ─── */
+
+.sd-star-bar {
+  display: flex;
+  gap: 6px;
+  padding: 6px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+}
+
+.sd-star {
+  font-size: 1.6rem;
+  transition: all 0.3s ease;
+}
+
+.sd-star.lost {
+  opacity: 0.25;
+  filter: grayscale(1);
+  animation: starLose 0.6s ease;
+}
+
+/* ─── Answer Flash ─── */
+
+.sd-answer-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  padding: 12px 28px;
+  border-radius: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 70;
+  animation: popIn 0.3s ease-out;
+  letter-spacing: 4px;
+}
+
+/* ─── End Screens ─── */
+
+.sd-end-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.6s ease-out;
+  gap: 12px;
+}
+
+.sd-end-screen.victory {
+  background: linear-gradient(180deg, #0a1628 0%, #1a2742 40%, #2c3e50 100%);
+}
+
+.sd-end-screen.gameover {
+  background: linear-gradient(180deg, #2c3e50 0%, #636e72 50%, #b2bec3 100%);
+}
+
+.sd-end-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  color: #ffeaa7;
+  animation: celebration 1s ease;
+}
+
+.sd-end-screen.gameover .sd-end-title {
+  color: #dfe6e9;
+}
+
+.sd-end-subtitle {
+  font-size: 1.1rem;
+  color: #b2bec3;
+}
+
+.sd-end-santa {
+  font-size: 3rem;
+  animation: bounce 1.5s ease infinite;
+}
+
+.sd-end-stars {
+  font-size: 2rem;
+  display: flex;
+  gap: 6px;
+}
+
+.sd-end-stats {
+  font-size: 1.1rem;
+  color: #b2bec3;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.sd-end-screen.victory .sd-end-stats {
+  color: #dfe6e9;
+}
+
+.sd-end-btn {
+  padding: var(--space-md) var(--space-xxl);
+  border-radius: var(--radius-lg);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: white;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  margin-top: 4px;
+}
+
+.sd-end-btn.primary {
+  background: var(--color-danger);
+}
+
+.sd-end-btn.secondary {
+  background: var(--color-secondary);
+}
+
+/* ─── Phaser Canvas Positioning ─── */
+
+#game-scene canvas {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+/* ─── Responsive ─── */
+
+@media (orientation: landscape) {
+  .spelling-input-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .spelling-slot {
+    width: 34px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .spelling-tile {
+    width: 38px;
+    height: 42px;
+    font-size: 1.1rem;
+  }
+
+  .spelling-kb-key {
+    min-width: 28px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+
+  .spelling-emoji {
+    font-size: 2rem;
+  }
+
+  .sd-star {
+    font-size: 1.3rem;
+  }
+}
+
+/* Short portrait screens */
+@media (orientation: portrait) and (max-height: 700px) {
+  .spelling-slot {
+    width: 32px;
+    height: 38px;
+    font-size: 1.1rem;
+  }
+
+  .spelling-tile {
+    width: 38px;
+    height: 42px;
+    font-size: 1.1rem;
+  }
+
+  .spelling-prompt {
+    min-height: 36px;
+  }
+
+  .spelling-emoji {
+    font-size: 2rem;
+  }
+}
+
+/* ─── Keyframes ─── */
+
+@keyframes starLose {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.4) rotate(-10deg); }
+  60% { transform: scale(0.8) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}

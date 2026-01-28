@@ -1,4 +1,4 @@
-const CACHE_NAME = 'avagames-v5';
+const CACHE_NAME = 'avagames-v6';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -10,14 +10,20 @@ const ASSETS_TO_CACHE = [
   '/css/subject-page.css',
   '/css/game.css',
   '/css/breakfast-helper.css',
+  '/css/santa-delivery.css',
   '/js/hub.js',
   '/js/math-app.js',
   '/js/spelling-app.js',
   '/js/math-engine.js',
+  '/js/spelling-engine.js',
   '/js/audio-manager.js',
+  '/js/word-audio-manager.js',
   '/js/game-base.js',
+  '/js/spelling-game-base.js',
   '/js/games/animal-crossing.js',
   '/js/games/breakfast-helper.js',
+  '/js/games/santa-scene.js',
+  '/js/games/santa-delivery.js',
 ];
 
 // Install: cache core assets
@@ -50,6 +56,24 @@ self.addEventListener('fetch', (event) => {
 
   // Audio files: cache on first load, serve from cache after
   if (url.pathname.startsWith('/audio/')) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then((cache) => {
+        return cache.match(event.request).then((cached) => {
+          if (cached) return cached;
+          return fetch(event.request).then((response) => {
+            if (response.ok) {
+              cache.put(event.request, response.clone());
+            }
+            return response;
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // CDN resources (Phaser, etc.): cache on first load, serve from cache after
+  if (url.hostname === 'cdn.jsdelivr.net') {
     event.respondWith(
       caches.open(CACHE_NAME).then((cache) => {
         return cache.match(event.request).then((cached) => {

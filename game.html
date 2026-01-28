@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/game.css">
   <link rel="stylesheet" href="css/breakfast-helper.css">
+  <link rel="stylesheet" href="css/santa-delivery.css">
 </head>
 <body>
   <div class="game-page" id="game-page">
@@ -26,12 +27,22 @@
     <div id="game-input-container"></div>
   </div>
 
+  <!-- Core engines -->
   <script src="js/math-engine.js"></script>
+  <script src="js/spelling-engine.js"></script>
   <script src="js/audio-manager.js"></script>
+  <script src="js/word-audio-manager.js"></script>
   <script src="js/game-base.js"></script>
+  <script src="js/spelling-game-base.js"></script>
+
+  <!-- Game modules -->
   <script src="js/games/animal-crossing.js"></script>
   <script src="js/games/breakfast-helper.js"></script>
+
   <script>
+    // Games that require Phaser 3
+    var PHASER_GAMES = ['santa-delivery'];
+
     // Parse URL params and launch the right game
     (function() {
       var params = new URLSearchParams(window.location.search);
@@ -39,6 +50,8 @@
       var mode = params.get('mode') || 'type';
       var count = parseInt(params.get('count'), 10) || 10;
       var subject = params.get('subject') || 'math';
+      var difficulty = params.get('difficulty') || 'easy';
+      var presentation = params.get('presentation') || 'audio-picture';
 
       // Select engine based on subject
       var gameEngine = MathEngine; // default
@@ -60,13 +73,55 @@
         window.location.href = subject === 'spelling' ? 'spelling.html' : 'math.html';
       });
 
-      // Launch game with engine
-      var gameOptions = { mode: mode, questionCount: count, engine: gameEngine };
+      // Check if this game needs Phaser
+      var needsPhaser = PHASER_GAMES.indexOf(gameId) !== -1;
 
-      if (gameId === 'animal-crossing') {
-        AnimalCrossing.start(gameOptions);
-      } else if (gameId === 'breakfast-helper') {
-        BreakfastHelper.start(gameOptions);
+      if (needsPhaser) {
+        // Dynamically load Phaser CDN, then the scene + game module
+        loadScript('https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js', function() {
+          loadScript('js/games/santa-scene.js', function() {
+            loadScript('js/games/santa-delivery.js', function() {
+              launchGame(gameId, mode, count, gameEngine, difficulty, presentation);
+            });
+          });
+        });
+      } else {
+        launchGame(gameId, mode, count, gameEngine, difficulty, presentation);
+      }
+
+      function launchGame(id, mode, count, engine, difficulty, presentation) {
+        var gameOptions = { mode: mode, questionCount: count, engine: engine };
+
+        if (id === 'animal-crossing') {
+          AnimalCrossing.start(gameOptions);
+        } else if (id === 'breakfast-helper') {
+          BreakfastHelper.start(gameOptions);
+        } else if (id === 'santa-delivery') {
+          SantaDelivery.start({
+            mode: difficulty === 'hard' ? 'keyboard' : 'scramble',
+            questionCount: count,
+            difficulty: difficulty,
+            presentation: presentation,
+          });
+        }
+      }
+
+      function loadScript(src, callback) {
+        var script = document.createElement('script');
+        script.src = src;
+        script.onload = callback;
+        script.onerror = function() {
+          console.error('Failed to load script: ' + src);
+          var sceneEl = document.getElementById('game-scene');
+          if (sceneEl) {
+            sceneEl.textContent = '';
+            var errDiv = document.createElement('div');
+            errDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;text-align:center;padding:20px;color:#636e72;';
+            errDiv.textContent = 'Could not load game. Please check your connection and try again.';
+            sceneEl.appendChild(errDiv);
+          }
+        };
+        document.head.appendChild(script);
       }
     })();
   </script>
