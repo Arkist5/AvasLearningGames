@@ -80,13 +80,6 @@ const StoryReader = (function() {
   let availableVoices = [];
 
   /**
-   * Check if a voice is a premium/enhanced quality voice
-   */
-  function isPremiumVoice(voice) {
-    return voice.name.includes('Premium') || voice.name.includes('Enhanced');
-  }
-
-  /**
    * Get display name for a voice (strip quality tags)
    */
   function getVoiceDisplayName(voice) {
@@ -104,60 +97,125 @@ const StoryReader = (function() {
       const voices = speechSynthesis.getVoices();
       if (voices.length === 0) return;
 
-      // Filter to English voices
+      // Filter to English Premium/Enhanced voices only
       const englishVoices = voices.filter(v =>
-        v.lang.startsWith('en')
+        v.lang.startsWith('en') &&
+        (v.name.includes('Premium') || v.name.includes('Enhanced'))
       );
 
-      // Only show Premium/Enhanced voices (the good ones!)
-      // Fall back to all English voices if none are downloaded
-      let filteredVoices = englishVoices.filter(isPremiumVoice);
-
-      if (filteredVoices.length === 0) {
-        // No premium voices found - show all (but this shouldn't happen on Ava's iPad)
-        filteredVoices = englishVoices;
+      // If no premium/enhanced found, fall back to all English voices
+      if (englishVoices.length === 0) {
+        availableVoices = voices.filter(v => v.lang.startsWith('en'));
+        populateVoiceSelect(availableVoices, false);
+        return;
       }
 
-      // Sort alphabetically by display name, with en-US first
-      availableVoices = filteredVoices.sort((a, b) => {
-        // en-US voices first
-        if (a.lang === 'en-US' && b.lang !== 'en-US') return -1;
-        if (b.lang === 'en-US' && a.lang !== 'en-US') return 1;
+      // Deduplicate: if same voice exists as both Premium and Enhanced, keep only Premium
+      const voiceMap = new Map();
+      englishVoices.forEach(voice => {
+        const baseName = getVoiceDisplayName(voice);
+        const existing = voiceMap.get(baseName);
 
-        // Then alphabetically
-        return getVoiceDisplayName(a).localeCompare(getVoiceDisplayName(b));
+        // Keep this voice if no existing, or if this one is Premium (better than Enhanced)
+        if (!existing || voice.name.includes('Premium')) {
+          voiceMap.set(baseName, voice);
+        }
       });
 
-      // Clear and repopulate select using DOM methods
-      while (voiceSelect.firstChild) {
-        voiceSelect.removeChild(voiceSelect.firstChild);
+      // Separate into Premium and Enhanced groups
+      const allVoices = Array.from(voiceMap.values());
+      const premiumVoices = allVoices
+        .filter(v => v.name.includes('Premium'))
+        .sort((a, b) => getVoiceDisplayName(a).localeCompare(getVoiceDisplayName(b)));
+      const enhancedVoices = allVoices
+        .filter(v => v.name.includes('Enhanced'))
+        .sort((a, b) => getVoiceDisplayName(a).localeCompare(getVoiceDisplayName(b)));
+
+      // Combine: Premium first (best), then Enhanced
+      availableVoices = [...premiumVoices, ...enhancedVoices];
+
+      populateVoiceSelect(availableVoices, true, premiumVoices.length, enhancedVoices.length);
+    };
+
+    // Voices may load async
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  /**
+   * Populate the voice select dropdown
+   * @param {Array} voices - Array of voice objects
+   * @param {boolean} useGroups - Whether to use optgroup sections
+   * @param {number} premiumCount - Number of premium voices (for grouping)
+   * @param {number} enhancedCount - Number of enhanced voices (for grouping)
+   */
+  function populateVoiceSelect(voices, useGroups, premiumCount = 0, enhancedCount = 0) {
+    // Clear existing options
+    while (voiceSelect.firstChild) {
+      voiceSelect.removeChild(voiceSelect.firstChild);
+    }
+
+    if (useGroups && (premiumCount > 0 || enhancedCount > 0)) {
+      let currentIndex = 0;
+
+      // Premium voices section (best quality)
+      if (premiumCount > 0) {
+        const premiumGroup = document.createElement('optgroup');
+        premiumGroup.label = '⭐ Best Quality';
+
+        for (let i = 0; i < premiumCount; i++) {
+          const voice = voices[currentIndex];
+          const option = document.createElement('option');
+          option.value = currentIndex;
+          option.textContent = getVoiceDisplayName(voice);
+          option.dataset.voiceName = voice.name;
+          premiumGroup.appendChild(option);
+          currentIndex++;
+        }
+
+        voiceSelect.appendChild(premiumGroup);
       }
 
-      availableVoices.forEach((voice, index) => {
+      // Enhanced voices section (good quality)
+      if (enhancedCount > 0) {
+        const enhancedGroup = document.createElement('optgroup');
+        enhancedGroup.label = '✓ Good Quality';
+
+        for (let i = 0; i < enhancedCount; i++) {
+          const voice = voices[currentIndex];
+          const option = document.createElement('option');
+          option.value = currentIndex;
+          option.textContent = getVoiceDisplayName(voice);
+          option.dataset.voiceName = voice.name;
+          enhancedGroup.appendChild(option);
+          currentIndex++;
+        }
+
+        voiceSelect.appendChild(enhancedGroup);
+      }
+    } else {
+      // No grouping - just list all voices
+      voices.forEach((voice, index) => {
         const option = document.createElement('option');
         option.value = index;
         option.textContent = getVoiceDisplayName(voice);
         option.dataset.voiceName = voice.name;
         voiceSelect.appendChild(option);
       });
+    }
 
-      // Restore saved voice or use first
-      const savedVoiceName = localStorage.getItem(STORAGE_VOICE);
-      if (savedVoiceName) {
-        const savedOption = Array.from(voiceSelect.options).find(
-          opt => opt.dataset.voiceName === savedVoiceName
-        );
-        if (savedOption) {
-          voiceSelect.value = savedOption.value;
-        }
+    // Restore saved voice or use first
+    const savedVoiceName = localStorage.getItem(STORAGE_VOICE);
+    if (savedVoiceName) {
+      const savedOption = Array.from(voiceSelect.querySelectorAll('option')).find(
+        opt => opt.dataset.voiceName === savedVoiceName
+      );
+      if (savedOption) {
+        voiceSelect.value = savedOption.value;
       }
+    }
 
-      selectedVoice = availableVoices[voiceSelect.value] || availableVoices[0];
-    };
-
-    // Voices may load async
-    loadVoices();
-    speechSynthesis.onvoiceschanged = loadVoices;
+    selectedVoice = availableVoices[voiceSelect.value] || availableVoices[0];
   }
 
   /**
