@@ -83,6 +83,7 @@ var SantaDelivery = (function () {
         showLives: false, // We use custom star bar
         wrongLosesLife: false, // We manage lives ourselves (timer-based)
         useCheckpoints: false,
+        noDistractors: true, // Only show letters in the word
         timerDuration: TIMER_SECONDS,
         onCorrect: handleCorrect,
         onWrong: handleWrong,
