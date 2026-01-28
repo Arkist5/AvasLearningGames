@@ -91,6 +91,8 @@ const MathEngine = (() => {
       operation = 'addition',
       checkpointInterval = 5,
       maxLives = 3,
+      useCheckpoints = true,
+      wrongLosesLife = true,
     } = options;
 
     const pool = generatePool(operation);
@@ -103,6 +105,8 @@ const MathEngine = (() => {
       operation,
       checkpointInterval,
       maxLives,
+      useCheckpoints,
+      wrongLosesLife,
       currentIndex: 0,
       lives: maxLives,
       lastCheckpoint: 0,
@@ -186,11 +190,14 @@ const MathEngine = (() => {
       }
     } else {
       session.totalWrong++;
-      session.lives--;
-      result.livesRemaining = session.lives;
 
-      if (session.onLifeLost) {
-        session.onLifeLost(session.lives);
+      if (session.wrongLosesLife) {
+        session.lives--;
+        result.livesRemaining = session.lives;
+
+        if (session.onLifeLost) {
+          session.onLifeLost(session.lives);
+        }
       }
 
       if (session.onWrong) {
@@ -198,7 +205,7 @@ const MathEngine = (() => {
       }
 
       // Check if out of lives - restart from checkpoint
-      if (session.lives <= 0) {
+      if (session.useCheckpoints && session.wrongLosesLife && session.lives <= 0) {
         result.checkpointRestart = true;
         session.lives = session.maxLives;
         result.livesRemaining = session.lives;
@@ -224,6 +231,16 @@ const MathEngine = (() => {
   }
 
   /**
+   * Advance past the current question without submitting an answer.
+   * Used by timer-based games when time runs out.
+   * Returns true if the game is now complete.
+   */
+  function advanceQuestion(session) {
+    session.currentIndex++;
+    return session.currentIndex >= session.questionCount;
+  }
+
+  /**
    * Get session progress info.
    */
   function getProgress(session) {
@@ -242,6 +259,7 @@ const MathEngine = (() => {
     createSession,
     getCurrentQuestion,
     submitAnswer,
+    advanceQuestion,
     getProgress,
     generateChoices,
     NUMBER_WORDS,

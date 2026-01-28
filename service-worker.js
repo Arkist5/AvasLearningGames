@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mathfun-v3';
+const CACHE_NAME = 'mathfun-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -6,11 +6,13 @@ const ASSETS_TO_CACHE = [
   '/css/styles.css',
   '/css/homepage.css',
   '/css/game.css',
+  '/css/breakfast-helper.css',
   '/js/app.js',
   '/js/math-engine.js',
   '/js/audio-manager.js',
   '/js/game-base.js',
   '/js/games/animal-crossing.js',
+  '/js/games/breakfast-helper.js',
 ];
 
 // Install: cache core assets

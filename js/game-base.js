@@ -6,10 +6,15 @@
 const GameBase = (() => {
   let session = null;
   let gameCallbacks = {};
+  let gameOptions = {};
   let inputMode = 'type'; // 'type' or 'choice'
   let currentAnswer = '';
   let inputLocked = false;
   let elements = {};
+
+  // Timer state
+  let timerInterval = null;
+  let timerRemaining = 0;
 
   // Helper to create an element with class and optional text
   function el(tag, className, textContent) {
@@ -38,19 +43,30 @@ const GameBase = (() => {
     const {
       questionCount = 10,
       mode = 'type',
+      showLives = true,
+      wrongLosesLife = true,
+      useCheckpoints = true,
+      timerDuration = null,
       onCorrect = null,
       onWrong = null,
       onCheckpoint = null,
       onCheckpointRestart = null,
       onComplete = null,
       onQuestionShow = null,
+      onTimeout = null,
+      onTimerTick = null,
     } = options;
 
     inputMode = mode;
-    gameCallbacks = { onCorrect, onWrong, onCheckpoint, onCheckpointRestart, onComplete, onQuestionShow };
+    gameCallbacks = { onCorrect, onWrong, onCheckpoint, onCheckpointRestart, onComplete, onQuestionShow, onTimeout, onTimerTick };
+    gameOptions = { showLives, wrongLosesLife, useCheckpoints, timerDuration };
 
-    // Create math session
-    session = MathEngine.createSession({ questionCount });
+    // Create math session with flags
+    session = MathEngine.createSession({
+      questionCount,
+      useCheckpoints,
+      wrongLosesLife,
+    });
 
     // Wire math engine events
     session.onCorrect = handleCorrect;
@@ -99,12 +115,14 @@ const GameBase = (() => {
     if (!session) return;
     const progress = MathEngine.getProgress(session);
 
-    // Lives as hearts - safe: only static content
+    // Lives as hearts (skip if showLives is false)
     elements.lives.textContent = '';
-    for (let i = 0; i < progress.maxLives; i++) {
-      const heart = el('span', i < progress.lives ? 'heart full' : 'heart empty');
-      heart.textContent = i < progress.lives ? '\u2665' : '\u2661';
-      elements.lives.appendChild(heart);
+    if (gameOptions.showLives) {
+      for (let i = 0; i < progress.maxLives; i++) {
+        const heart = el('span', i < progress.lives ? 'heart full' : 'heart empty');
+        heart.textContent = i < progress.lives ? '\u2665' : '\u2661';
+        elements.lives.appendChild(heart);
+      }
     }
 
     // Progress counter
@@ -136,6 +154,56 @@ const GameBase = (() => {
     elements.answerArea = answerArea;
     elements.feedback = feedback;
   }
+
+  // --- Timer system ---
+
+  function startTimer() {
+    if (!gameOptions.timerDuration) return;
+    stopTimer();
+    timerRemaining = gameOptions.timerDuration;
+
+    timerInterval = setInterval(() => {
+      timerRemaining--;
+      if (gameCallbacks.onTimerTick) {
+        gameCallbacks.onTimerTick(timerRemaining, gameOptions.timerDuration);
+      }
+      if (timerRemaining <= 0) {
+        handleTimeout();
+      }
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  }
+
+  function handleTimeout() {
+    stopTimer();
+    inputLocked = true;
+
+    const question = MathEngine.getCurrentQuestion(session);
+    const isComplete = MathEngine.advanceQuestion(session);
+
+    if (gameCallbacks.onTimeout) {
+      gameCallbacks.onTimeout(question, question ? question.answer : 0, isComplete);
+    }
+
+    updateHUD();
+  }
+
+  /**
+   * Called by game module after timeout animation completes.
+   * Advances to the next question display.
+   */
+  function forceNextQuestion() {
+    hideFeedback();
+    showCurrentQuestion();
+  }
+
+  // --- End timer system ---
 
   function showCurrentQuestion() {
     const question = MathEngine.getCurrentQuestion(session);
@@ -177,6 +245,9 @@ const GameBase = (() => {
     }
 
     updateHUD();
+
+    // Start timer after question is shown
+    startTimer();
   }
 
   function buildNumberPad() {
@@ -264,6 +335,7 @@ const GameBase = (() => {
     if (!result) return;
 
     if (result.correct) {
+      stopTimer();
       showFeedback('correct');
       AudioManager.playAnswer(result.question.audioKey);
       AudioManager.playSfx('correct');
@@ -293,7 +365,18 @@ const GameBase = (() => {
         gameCallbacks.onWrong(result.question, result.livesRemaining);
       }
 
-      if (result.checkpointRestart) {
+      if (gameOptions.timerDuration) {
+        // Timer mode: brief wrong feedback, re-enable input, timer keeps running
+        setTimeout(() => {
+          hideFeedback();
+          inputLocked = false;
+          currentAnswer = '';
+          if (elements.answerSlot) {
+            elements.answerSlot.textContent = '?';
+            elements.answerSlot.classList.remove('has-value');
+          }
+        }, 800);
+      } else if (result.checkpointRestart) {
         setTimeout(() => {
           showCheckpointRestart();
           if (gameCallbacks.onCheckpointRestart) {
@@ -363,8 +446,10 @@ const GameBase = (() => {
   }
 
   function destroy() {
+    stopTimer();
     session = null;
     gameCallbacks = {};
+    gameOptions = {};
     elements = {};
   }
 
@@ -373,5 +458,7 @@ const GameBase = (() => {
     getSession,
     destroy,
     updateHUD,
+    forceNextQuestion,
+    stopTimer,
   };
 })();

@@ -1,0 +1,367 @@
+/* ─── Breakfast Helper Game Scene ─── */
+
+/* Kitchen background: warm golden ceiling -> pink wall -> gray counter */
+.bh-kitchen {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    #ffeaa7 0%,
+    #fab1a0 35%,
+    #dfe6e9 65%,
+    #b2bec3 100%
+  );
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Star bar - centered row of 5 stars */
+.bh-star-bar {
+  display: flex;
+  gap: 6px;
+  padding: 6px 16px;
+  margin-top: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 20px;
+  z-index: 10;
+}
+
+.bh-star {
+  font-size: 1.6rem;
+  transition: all 0.3s ease;
+}
+
+.bh-star.lost {
+  opacity: 0.25;
+  filter: grayscale(1);
+  animation: starLose 0.6s ease;
+}
+
+/* Stove area - centered with burner ring + food + timer */
+.bh-stove-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  z-index: 5;
+}
+
+/* Stove surface */
+.bh-stove {
+  width: 160px;
+  height: 160px;
+  background: #2d3436;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Burner ring - circular border that changes color via data-urgency */
+.bh-burner-ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 6px solid #27ae60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.5s ease, box-shadow 0.5s ease;
+  position: relative;
+}
+
+.bh-burner-ring[data-urgency="safe"] {
+  border-color: #27ae60;
+  box-shadow: 0 0 12px rgba(39, 174, 96, 0.4);
+}
+
+.bh-burner-ring[data-urgency="warning"] {
+  border-color: #f1c40f;
+  box-shadow: 0 0 16px rgba(241, 196, 15, 0.5);
+  animation: burnerPulse 1s ease infinite;
+}
+
+.bh-burner-ring[data-urgency="danger"] {
+  border-color: #e74c3c;
+  box-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
+  animation: burnerPulse 0.5s ease infinite;
+}
+
+/* Food on stove */
+.bh-food-on-stove {
+  font-size: 3rem;
+  position: relative;
+  z-index: 2;
+}
+
+.bh-food-on-stove.cooking {
+  animation: cookBobble 1.2s ease-in-out infinite;
+}
+
+.bh-food-on-stove.sizzle {
+  animation: sizzle 0.15s ease infinite;
+}
+
+.bh-food-on-stove.cooked {
+  animation: slideToPlate 0.8s ease-out forwards;
+}
+
+.bh-food-on-stove.burned {
+  filter: brightness(0.3) saturate(0.2);
+  animation: burnShake 0.4s ease;
+}
+
+/* Timer text below stove */
+.bh-timer-text {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  margin-top: 12px;
+  color: #2d3436;
+  transition: color 0.3s ease;
+  z-index: 5;
+}
+
+.bh-timer-text.danger {
+  color: #e74c3c;
+  animation: timerPulse 0.5s ease infinite;
+}
+
+/* Plate area - bottom right, fills with cooked food emojis */
+.bh-plate-area {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: flex-end;
+  justify-content: flex-end;
+  max-width: 120px;
+  z-index: 10;
+}
+
+.bh-plate-label {
+  width: 100%;
+  text-align: center;
+  font-size: 2rem;
+}
+
+.bh-plate-food {
+  font-size: 1.4rem;
+  animation: popIn 0.4s ease-out;
+}
+
+/* Smoke effect - rises and fades on burn */
+.bh-smoke {
+  position: absolute;
+  font-size: 2rem;
+  opacity: 0;
+  z-index: 20;
+  pointer-events: none;
+  animation: smokeRise 1.5s ease-out forwards;
+}
+
+/* Answer flash pill - "The answer was X!" on timeout */
+.bh-answer-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  color: #2d3436;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  padding: 10px 24px;
+  border-radius: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 30;
+  animation: popIn 0.3s ease-out;
+  white-space: nowrap;
+}
+
+/* End screens (victory / game over) */
+.bh-end-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.6s ease-out;
+  gap: 12px;
+}
+
+.bh-end-screen.victory {
+  background: linear-gradient(180deg, #ffeaa7 0%, #fab1a0 50%, #fef3f0 100%);
+}
+
+.bh-end-screen.gameover {
+  background: linear-gradient(180deg, #636e72 0%, #b2bec3 50%, #dfe6e9 100%);
+}
+
+.bh-end-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  animation: celebration 1s ease;
+}
+
+.bh-end-screen.victory .bh-end-title {
+  color: #d35400;
+}
+
+.bh-end-screen.gameover .bh-end-title {
+  color: #636e72;
+}
+
+.bh-end-stats {
+  font-size: 1.1rem;
+  color: #636e72;
+}
+
+.bh-end-stars {
+  font-size: 2rem;
+  display: flex;
+  gap: 6px;
+}
+
+.bh-end-foods {
+  display: flex;
+  gap: 8px;
+  font-size: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 280px;
+}
+
+.bh-end-btn {
+  padding: var(--space-md) var(--space-xxl);
+  border-radius: var(--radius-lg);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: white;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  margin-top: 4px;
+}
+
+.bh-end-btn.primary {
+  background: var(--color-primary);
+}
+
+.bh-end-btn.secondary {
+  background: var(--color-secondary);
+}
+
+/* ─── Keyframe Animations ─── */
+
+@keyframes starLose {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.4) rotate(-10deg); }
+  60% { transform: scale(0.8) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes cookBobble {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes sizzle {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, -1px); }
+  100% { transform: translate(1px, 1px); }
+}
+
+@keyframes slideToPlate {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  50% { transform: translate(40px, 20px) scale(0.8); opacity: 0.8; }
+  100% { transform: translate(80px, 60px) scale(0.5); opacity: 0; }
+}
+
+@keyframes burnShake {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-4px, 2px); }
+  40% { transform: translate(4px, -2px); }
+  60% { transform: translate(-3px, 1px); }
+  80% { transform: translate(3px, -1px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes burnerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes timerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+@keyframes smokeRise {
+  0% { opacity: 0.8; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-80px) scale(2); }
+}
+
+/* ─── Landscape adjustments ─── */
+@media (orientation: landscape) {
+  .bh-stove {
+    width: 130px;
+    height: 130px;
+  }
+
+  .bh-burner-ring {
+    width: 100px;
+    height: 100px;
+  }
+
+  .bh-food-on-stove {
+    font-size: 2.5rem;
+  }
+
+  .bh-timer-text {
+    font-size: 1.6rem;
+    margin-top: 8px;
+  }
+
+  .bh-star {
+    font-size: 1.3rem;
+  }
+
+  .bh-plate-area {
+    max-width: 100px;
+  }
+}
+
+/* Short portrait screens */
+@media (orientation: portrait) and (max-height: 700px) {
+  .bh-stove {
+    width: 130px;
+    height: 130px;
+  }
+
+  .bh-burner-ring {
+    width: 100px;
+    height: 100px;
+  }
+
+  .bh-food-on-stove {
+    font-size: 2.5rem;
+  }
+
+  .bh-timer-text {
+    font-size: 1.5rem;
+  }
+}
