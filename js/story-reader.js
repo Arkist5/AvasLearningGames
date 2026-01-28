@@ -14,9 +14,9 @@ const StoryReader = (function() {
   // State
   let isPaused = false;
   let isReading = false;
-  let currentWordIndex = -1;
-  let words = [];
-  let wordElements = [];
+  let currentSentenceIndex = -1;
+  let sentences = [];
+  let sentenceElements = [];
   let selectedVoice = null;
   let speechRate = 0.9;
   let isMuted = false;
@@ -301,52 +301,37 @@ const StoryReader = (function() {
 
   /**
    * Prepare the story text for display
-   * Splits into words and creates spans for each
+   * Splits into sentences and creates spans for each
    */
   function prepareStory(text) {
-    words = [];
-    wordElements = [];
+    sentences = [];
+    sentenceElements = [];
     clearElement(display);
 
-    // Split by whitespace but preserve structure
-    const tokens = text.split(/(\s+)/);
+    // Split into sentences (by . ! ? or newlines)
+    // Keep the punctuation with each sentence
+    const sentenceRegex = /[^.!?\n]+[.!?]?/g;
+    const matches = text.match(sentenceRegex) || [text];
 
-    tokens.forEach(token => {
-      if (/^\s+$/.test(token)) {
-        // Whitespace - add to display
-        const space = document.createTextNode(token);
-        display.appendChild(space);
-      } else if (token.length > 0) {
-        // Word - create span
-        const span = document.createElement('span');
-        span.className = 'story-word';
-        span.textContent = token;
-        span.dataset.wordIndex = words.length;
-        display.appendChild(span);
+    matches.forEach((sentence, index) => {
+      const trimmed = sentence.trim();
+      if (trimmed.length === 0) return;
 
-        words.push(token);
-        wordElements.push(span);
+      // Create sentence span
+      const span = document.createElement('span');
+      span.className = 'story-sentence';
+      span.textContent = trimmed;
+      span.dataset.sentenceIndex = sentences.length;
+      display.appendChild(span);
+
+      // Add space between sentences
+      if (index < matches.length - 1) {
+        display.appendChild(document.createTextNode(' '));
       }
+
+      sentences.push(trimmed);
+      sentenceElements.push(span);
     });
-  }
-
-  /**
-   * Get pause duration after a word based on punctuation
-   * Returns milliseconds to wait before next word
-   */
-  function getPauseAfterWord(word) {
-    const lastChar = word.slice(-1);
-
-    // Longer pause after sentence-ending punctuation
-    if ('.!?'.includes(lastChar)) {
-      return 300 / speechRate;
-    }
-    // Medium pause after commas, semicolons, colons
-    if (',;:'.includes(lastChar)) {
-      return 150 / speechRate;
-    }
-    // Short pause between regular words
-    return 50 / speechRate;
   }
 
   /**
@@ -368,42 +353,41 @@ const StoryReader = (function() {
     controls.classList.remove('hidden');
 
     // Reset state
-    currentWordIndex = -1;
+    currentSentenceIndex = -1;
     isPaused = false;
     isReading = true;
     updatePlayPauseIcon();
 
-    // Start speaking word by word
-    speakNextWord();
+    // Start speaking sentence by sentence
+    speakNextSentence();
   }
 
   /**
-   * Speak the next word in the sequence
+   * Speak the next sentence in the sequence
    */
-  function speakNextWord() {
+  function speakNextSentence() {
     // Check if we should stop
     if (!isReading || isPaused) {
       return;
     }
 
-    // Move to next word
-    currentWordIndex++;
+    // Move to next sentence
+    currentSentenceIndex++;
 
     // Check if we're done
-    if (currentWordIndex >= words.length) {
+    if (currentSentenceIndex >= sentences.length) {
       finishReading();
       return;
     }
 
-    // Highlight current word
-    highlightWord(currentWordIndex);
+    // Highlight current sentence
+    highlightSentence(currentSentenceIndex);
 
-    // Get the word to speak (strip punctuation for cleaner speech)
-    const word = words[currentWordIndex];
-    const cleanWord = word.replace(/[^\w']/g, '') || word;
+    // Get the sentence to speak
+    const sentence = sentences[currentSentenceIndex];
 
-    // Create utterance for this word
-    const utterance = new SpeechSynthesisUtterance(cleanWord);
+    // Create utterance for this sentence
+    const utterance = new SpeechSynthesisUtterance(sentence);
     utterance.rate = speechRate;
     utterance.pitch = 1;
     utterance.volume = isMuted ? 0 : 1;
@@ -412,14 +396,14 @@ const StoryReader = (function() {
       utterance.voice = selectedVoice;
     }
 
-    // When word finishes, pause briefly then speak next
+    // When sentence finishes, brief pause then speak next
     utterance.onend = () => {
       if (!isReading || isPaused) return;
 
-      const pauseDuration = getPauseAfterWord(word);
+      // Brief pause between sentences
       setTimeout(() => {
-        speakNextWord();
-      }, pauseDuration);
+        speakNextSentence();
+      }, 300 / speechRate);
     };
 
     utterance.onerror = (event) => {
@@ -428,22 +412,22 @@ const StoryReader = (function() {
       }
       // Try to continue even on error
       if (isReading && !isPaused) {
-        setTimeout(() => speakNextWord(), 100);
+        setTimeout(() => speakNextSentence(), 100);
       }
     };
 
-    // Speak the word
+    // Speak the sentence
     speechSynthesis.speak(utterance);
   }
 
   /**
-   * Finish reading - called when all words are done
+   * Finish reading - called when all sentences are done
    */
   function finishReading() {
     isReading = false;
     updatePlayPauseIcon();
 
-    // Keep last word highlighted briefly, then clear
+    // Keep last sentence highlighted briefly, then clear
     setTimeout(() => {
       if (!isReading) {
         clearHighlight();
@@ -452,15 +436,10 @@ const StoryReader = (function() {
   }
 
   /**
-   * Highlight a specific word
+   * Highlight a specific sentence
    */
-  function highlightWord(index) {
-    // Remove previous highlight
-    if (currentWordIndex >= 0 && currentWordIndex < wordElements.length &&
-        currentWordIndex !== index) {
-      // Don't remove if it's the same word
-    }
-    wordElements.forEach((el, i) => {
+  function highlightSentence(index) {
+    sentenceElements.forEach((el, i) => {
       if (i === index) {
         el.classList.add('active');
       } else {
@@ -468,49 +447,49 @@ const StoryReader = (function() {
       }
     });
 
-    // Scroll to keep highlighted word visible
-    scrollToWord(index);
+    // Scroll to keep highlighted sentence visible
+    scrollToSentence(index);
   }
 
   /**
-   * Scroll to keep highlighted word visible
+   * Scroll to keep highlighted sentence visible
    */
-  function scrollToWord(index) {
-    const wordEl = wordElements[index];
-    if (!wordEl) return;
+  function scrollToSentence(index) {
+    const sentenceEl = sentenceElements[index];
+    if (!sentenceEl) return;
 
     const container = displayPanel;
-    const wordRect = wordEl.getBoundingClientRect();
+    const sentenceRect = sentenceEl.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
 
-    // Check if word is below visible area
-    if (wordRect.bottom > containerRect.bottom - 20) {
-      container.scrollTop += wordRect.bottom - containerRect.bottom + 40;
+    // Check if sentence is below visible area
+    if (sentenceRect.bottom > containerRect.bottom - 20) {
+      container.scrollTop += sentenceRect.bottom - containerRect.bottom + 40;
     }
-    // Check if word is above visible area
-    else if (wordRect.top < containerRect.top + 20) {
-      container.scrollTop -= containerRect.top - wordRect.top + 40;
+    // Check if sentence is above visible area
+    else if (sentenceRect.top < containerRect.top + 20) {
+      container.scrollTop -= containerRect.top - sentenceRect.top + 40;
     }
   }
 
   /**
-   * Clear all word highlights
+   * Clear all sentence highlights
    */
   function clearHighlight() {
-    wordElements.forEach(el => el.classList.remove('active'));
+    sentenceElements.forEach(el => el.classList.remove('active'));
   }
 
   /**
    * Toggle play/pause
    */
   function togglePlayPause() {
-    if (!isReading && currentWordIndex >= words.length - 1) {
+    if (!isReading && currentSentenceIndex >= sentences.length - 1) {
       // Finished - restart from beginning
-      currentWordIndex = -1;
+      currentSentenceIndex = -1;
       isReading = true;
       isPaused = false;
       updatePlayPauseIcon();
-      speakNextWord();
+      speakNextSentence();
       return;
     }
 
@@ -521,10 +500,10 @@ const StoryReader = (function() {
     }
 
     if (isPaused) {
-      // Resume - continue from current word
+      // Resume - continue from current sentence
       isPaused = false;
       updatePlayPauseIcon();
-      speakNextWord();
+      speakNextSentence();
     } else {
       // Pause
       speechSynthesis.cancel();
@@ -553,7 +532,7 @@ const StoryReader = (function() {
     speechSynthesis.cancel();
     isReading = false;
     isPaused = false;
-    currentWordIndex = -1;
+    currentSentenceIndex = -1;
 
     // Switch back to input mode
     displayPanel.classList.add('hidden');

@@ -124,36 +124,34 @@
   word-spacing: 0.1em;
 }
 
-/* Individual word styling */
-.story-word {
+/* Individual sentence styling */
+.story-sentence {
   display: inline;
-  padding: 2px 4px;
-  margin: 0 1px;
-  border-radius: var(--radius-sm);
-  transition: all 0.15s ease;
+  padding: 4px 8px;
+  margin: 2px 0;
+  border-radius: var(--radius-md);
+  transition: all 0.25s ease;
+  line-height: 2.2;
 }
 
-/* Active (highlighted) word */
-.story-word.active {
-  background: #ffeaa7;
+/* Active (highlighted) sentence */
+.story-sentence.active {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
   color: #2d3436;
-  transform: scale(1.05);
-  display: inline-block;
-  animation: wordPulse 0.3s ease-out;
-  box-shadow: 0 2px 8px rgba(253, 203, 110, 0.4);
+  display: inline;
+  animation: sentencePulse 0.4s ease-out;
+  box-shadow: 0 2px 12px rgba(253, 203, 110, 0.5);
+  border-radius: var(--radius-md);
 }
 
-@keyframes wordPulse {
+@keyframes sentencePulse {
   0% {
-    transform: scale(1);
     background: transparent;
-  }
-  50% {
-    transform: scale(1.08);
+    box-shadow: none;
   }
   100% {
-    transform: scale(1.05);
-    background: #ffeaa7;
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    box-shadow: 0 2px 12px rgba(253, 203, 110, 0.5);
   }
 }
 
