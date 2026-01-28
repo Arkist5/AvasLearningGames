@@ -79,26 +79,48 @@ const WordAudioManager = (() => {
   }
 
   /**
+   * Sanitize a word for audio filename lookup.
+   * Must match the sanitization in generate-spelling-audio.js.
+   */
+  function sanitizeFilename(word) {
+    return word.toLowerCase().replace(/'/g, '').replace(/\s+/g, '_');
+  }
+
+  /**
+   * Try to play a pre-recorded audio file. Returns a promise that
+   * resolves on success and rejects if the file doesn't exist.
+   */
+  function tryRecordedAudio(filename, type) {
+    return new Promise(function (resolve, reject) {
+      var audio = new Audio('audio/' + type + '/' + filename + '.mp3');
+      audio.oncanplaythrough = function () {
+        audio.onended = resolve;
+        audio.play().catch(reject);
+      };
+      audio.onerror = reject;
+    });
+  }
+
+  /**
    * Pronounce a word from a question object.
-   * Checks for custom audio first, falls back to SpeechSynthesis.
+   * Tries pre-recorded audio first, falls back to SpeechSynthesis.
    */
   function pronounceWord(questionObj) {
     if (muted) return Promise.resolve();
 
-    // Future: check for custom audio file
-    // if (questionObj.hasCustomAudio) {
-    //   return AudioManager.play(questionObj.audioKey, 'words');
-    // }
-
-    return speakWord(questionObj.word);
+    var filename = sanitizeFilename(questionObj.word);
+    return tryRecordedAudio(filename, 'words').catch(function () {
+      return speakWord(questionObj.word);
+    });
   }
 
   /**
    * Spell out a word letter by letter.
+   * Tries pre-recorded letter audio, falls back to SpeechSynthesis.
    * Returns a Promise that resolves when all letters are spoken.
    */
   function spellWord(word) {
-    if (muted || !speechSupported) return Promise.resolve();
+    if (muted) return Promise.resolve();
 
     var letters = word.split('');
     var index = 0;
@@ -111,8 +133,12 @@ const WordAudioManager = (() => {
         }
         var letter = letters[index];
         index++;
-        speakWord(letter, { rate: 1.0 }).then(function () {
-          setTimeout(speakNext, 150); // brief pause between letters
+
+        // Try pre-recorded letter audio, fall back to SpeechSynthesis
+        tryRecordedAudio(letter.toLowerCase(), 'letters').catch(function () {
+          return speakWord(letter, { rate: 1.0 });
+        }).then(function () {
+          setTimeout(speakNext, 150);
         });
       }
       speakNext();
