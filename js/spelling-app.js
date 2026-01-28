@@ -1,5 +1,5 @@
 /**
- * Spelling page logic - Game grid (all locked), difficulty toggle, word input.
+ * Spelling page logic - Game grid (all locked), word input.
  * Reads shared settings from avagames-settings, spelling settings from avagames-spelling.
  */
 
@@ -17,7 +17,7 @@
 
   // Settings
   var sharedSettings = { muted: false };
-  var spellingSettings = { difficulty: 'easy', words: [] };
+  var spellingSettings = { words: [] };
 
   function loadSettings() {
     try {
@@ -33,7 +33,6 @@
       if (saved) {
         var parsed = JSON.parse(saved);
         spellingSettings = {
-          difficulty: parsed.difficulty || 'easy',
           words: parsed.words || [],
         };
       }
@@ -71,7 +70,7 @@
       card.className = 'subject-game-card ' + (game.playable ? 'playable' : 'locked');
 
       if (game.playable) {
-        card.href = 'game.html?game=' + game.id + '&subject=spelling&difficulty=' + spellingSettings.difficulty;
+        card.href = 'game.html?game=' + game.id + '&subject=spelling';
       }
 
       var icon = document.createElement('div');
@@ -92,27 +91,6 @@
       }
 
       grid.appendChild(card);
-    });
-  }
-
-  // Setup difficulty toggle
-  function setupDifficultyToggle() {
-    var toggle = document.getElementById('spelling-difficulty-toggle');
-    var buttons = toggle.querySelectorAll('.subject-toggle-btn');
-
-    // Set initial state
-    buttons.forEach(function (btn) {
-      btn.classList.toggle('active', btn.dataset.difficulty === spellingSettings.difficulty);
-    });
-
-    toggle.addEventListener('click', function (e) {
-      var btn = e.target.closest('.subject-toggle-btn');
-      if (!btn) return;
-
-      buttons.forEach(function (b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      spellingSettings.difficulty = btn.dataset.difficulty;
-      saveSpellingSettings();
     });
   }
 
@@ -182,7 +160,6 @@
   function init() {
     loadSettings();
     buildGameGrid();
-    setupDifficultyToggle();
     setupWordInput();
     setupAudioToggle();
     setupAudioUnlock();
