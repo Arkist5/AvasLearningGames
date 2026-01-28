@@ -1,0 +1,165 @@
+/* ─── Zoo Bedtime ─── */
+
+/* Star bar (same pattern as other games) */
+.zoo-star-bar {
+  display: flex;
+  gap: 6px;
+  padding: 6px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+}
+
+.zoo-star {
+  font-size: 1.6rem;
+  transition: all 0.3s ease;
+}
+
+.zoo-star.lost {
+  opacity: 0.25;
+  filter: grayscale(1);
+  animation: zooStarLose 0.6s ease;
+}
+
+/* ─── Answer Flash ─── */
+
+.zoo-answer-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  padding: 12px 28px;
+  border-radius: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 70;
+  animation: popIn 0.3s ease-out;
+  letter-spacing: 4px;
+}
+
+/* ─── End Screens ─── */
+
+.zoo-end-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.6s ease-out;
+  gap: 12px;
+}
+
+.zoo-end-screen.victory {
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+}
+
+.zoo-end-screen.gameover {
+  background: linear-gradient(180deg, #2c3e50 0%, #636e72 50%, #b2bec3 100%);
+}
+
+.zoo-end-title {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  color: #FFF9C4;
+  text-align: center;
+  animation: celebration 1s ease;
+}
+
+.zoo-end-screen.gameover .zoo-end-title {
+  color: #dfe6e9;
+}
+
+.zoo-end-subtitle {
+  font-size: 1.1rem;
+  color: #A8D8EA;
+}
+
+.zoo-end-screen.gameover .zoo-end-subtitle {
+  color: #b2bec3;
+}
+
+.zoo-end-emoji {
+  font-size: 4rem;
+  animation: bounce 1.5s ease infinite;
+}
+
+.zoo-end-stars {
+  font-size: 2rem;
+  display: flex;
+  gap: 6px;
+}
+
+.zoo-end-stats {
+  font-size: 1.1rem;
+  color: #A8D8EA;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.zoo-end-screen.gameover .zoo-end-stats {
+  color: #b2bec3;
+}
+
+.zoo-end-btn {
+  padding: var(--space-md) var(--space-xxl);
+  border-radius: var(--radius-lg);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: white;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  margin-top: 4px;
+}
+
+.zoo-end-btn.primary {
+  background: #6c5ce7;
+}
+
+.zoo-end-btn.secondary {
+  background: var(--color-secondary);
+}
+
+/* ─── Phaser Canvas Positioning ─── */
+
+#game-scene canvas {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+/* ─── Responsive ─── */
+
+@media (orientation: landscape) {
+  .zoo-star {
+    font-size: 1.3rem;
+  }
+
+  .zoo-end-title {
+    font-size: 1.8rem;
+  }
+
+  .zoo-end-emoji {
+    font-size: 3rem;
+  }
+}
+
+/* ─── Keyframes ─── */
+
+@keyframes zooStarLose {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.4) rotate(-10deg); }
+  60% { transform: scale(0.8) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}

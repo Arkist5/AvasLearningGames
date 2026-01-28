@@ -6,6 +6,7 @@
 (function () {
   var GAMES = [
     // Live
+    { id: 'zoo', name: 'Zoo Bedtime', icon: '\uD83E\uDD81', playable: true },
     { id: 'cobbler', name: "Cobbler's Workshop", icon: '\uD83D\uDC5E', playable: true },
     { id: 'santa-delivery', name: "Santa's Delivery", icon: '\uD83C\uDF85', playable: true },
     // Coming soon
