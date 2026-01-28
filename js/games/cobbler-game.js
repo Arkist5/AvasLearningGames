@@ -96,6 +96,7 @@ var CobblersWorkshop = (function () {
         showLives: false,       // Custom star bar
         wrongLosesLife: false,  // We manage lives ourselves
         useCheckpoints: false,
+        noDistractors: true,    // Only show letters in the word
         timerDuration: timed ? TIMER_SECONDS : null,
         onCorrect: handleCorrect,
         onWrong: handleWrong,

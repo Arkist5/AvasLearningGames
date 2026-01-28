@@ -75,6 +75,7 @@ const SpellingGameBase = (() => {
       wrongLosesLife: wrongLosesLife,
       useCheckpoints: useCheckpoints,
       timerDuration: timerDuration,
+      noDistractors: options.noDistractors || false,
     };
 
     // Create spelling session
@@ -294,7 +295,17 @@ const SpellingGameBase = (() => {
   // --- Scramble Tiles ---
 
   function buildScrambleTiles(question) {
-    var letters = SpellingEngine.generateDistractors(question.word);
+    var letters;
+    if (gameOptions.noDistractors) {
+      // Shuffle only the word's own letters (no extra distractors)
+      letters = question.word.split('');
+      for (var si = letters.length - 1; si > 0; si--) {
+        var sj = Math.floor(Math.random() * (si + 1));
+        var tmp = letters[si]; letters[si] = letters[sj]; letters[sj] = tmp;
+      }
+    } else {
+      letters = SpellingEngine.generateDistractors(question.word);
+    }
     elements.inputZone.textContent = '';
     tileElements = [];
     usedTileIndices = [];
