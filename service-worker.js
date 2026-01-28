@@ -1,4 +1,4 @@
-const CACHE_NAME = 'avagames-v6';
+const CACHE_NAME = 'avagames-v7';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
   '/css/game.css',
   '/css/breakfast-helper.css',
   '/css/santa-delivery.css',
+  '/css/cobbler-game.css',
   '/js/hub.js',
   '/js/math-app.js',
   '/js/spelling-app.js',
@@ -24,6 +25,8 @@ const ASSETS_TO_CACHE = [
   '/js/games/breakfast-helper.js',
   '/js/games/santa-scene.js',
   '/js/games/santa-delivery.js',
+  '/js/games/cobbler-scene.js',
+  '/js/games/cobbler-game.js',
 ];
 
 // Install: cache core assets

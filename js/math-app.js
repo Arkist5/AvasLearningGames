@@ -5,9 +5,11 @@
 
 (function () {
   var GAMES = [
+    // Live
     { id: 'animal-crossing', name: 'Animal Crossing', icon: '\uD83D\uDC2F', playable: true },
-    { id: 'traffic-jam', name: 'Traffic Jam', icon: '\uD83D\uDE97', playable: false },
     { id: 'breakfast-helper', name: 'Breakfast Helper', icon: '\uD83C\uDF73', playable: true },
+    // Coming soon
+    { id: 'traffic-jam', name: 'Traffic Jam', icon: '\uD83D\uDE97', playable: false },
     { id: 'baking-contest', name: 'Baking Contest', icon: '\uD83C\uDF82', playable: false },
     { id: 'pet-feeder', name: 'Pet Feeder', icon: '\uD83D\uDC36', playable: false },
     { id: 'boat-builder', name: 'Boat Builder', icon: '\u26F5', playable: false },

@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/game.css">
   <link rel="stylesheet" href="css/breakfast-helper.css">
   <link rel="stylesheet" href="css/santa-delivery.css">
+  <link rel="stylesheet" href="css/cobbler-game.css">
 </head>
 <body>
   <div class="game-page" id="game-page">
@@ -41,7 +42,7 @@
 
   <script>
     // Games that require Phaser 3
-    var PHASER_GAMES = ['santa-delivery'];
+    var PHASER_GAMES = ['santa-delivery', 'cobbler'];
 
     // Parse URL params and launch the right game
     (function() {
@@ -52,6 +53,8 @@
       var subject = params.get('subject') || 'math';
       var difficulty = params.get('difficulty') || 'easy';
       var presentation = params.get('presentation') || 'audio-picture';
+      var timedParam = params.get('timed');
+      var timed = timedParam !== 'false'; // default true
 
       // Select engine based on subject
       var gameEngine = MathEngine; // default
@@ -78,11 +81,14 @@
 
       if (needsPhaser) {
         // Dynamically load Phaser CDN, then the scene + game module
+        var gameScripts = {
+          'santa-delivery': ['js/games/santa-scene.js', 'js/games/santa-delivery.js'],
+          'cobbler': ['js/games/cobbler-scene.js', 'js/games/cobbler-game.js'],
+        };
+        var scripts = gameScripts[gameId] || [];
         loadScript('https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js', function() {
-          loadScript('js/games/santa-scene.js', function() {
-            loadScript('js/games/santa-delivery.js', function() {
-              launchGame(gameId, mode, count, gameEngine, difficulty, presentation);
-            });
+          loadScriptsSequential(scripts, 0, function() {
+            launchGame(gameId, mode, count, gameEngine, difficulty, presentation);
           });
         });
       } else {
@@ -103,7 +109,22 @@
             difficulty: difficulty,
             presentation: presentation,
           });
+        } else if (id === 'cobbler') {
+          CobblersWorkshop.start({
+            mode: difficulty === 'hard' ? 'keyboard' : 'scramble',
+            questionCount: count,
+            difficulty: difficulty,
+            presentation: presentation,
+            timed: timed,
+          });
         }
+      }
+
+      function loadScriptsSequential(srcs, idx, callback) {
+        if (idx >= srcs.length) { callback(); return; }
+        loadScript(srcs[idx], function() {
+          loadScriptsSequential(srcs, idx + 1, callback);
+        });
       }
 
       function loadScript(src, callback) {

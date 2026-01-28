@@ -5,11 +5,13 @@
 
 (function () {
   var GAMES = [
-    { id: 'word-builder', name: 'Word Builder', icon: '\uD83E\uDDE9', playable: false },
+    // Live
+    { id: 'cobbler', name: "Cobbler's Workshop", icon: '\uD83D\uDC5E', playable: true },
+    { id: 'santa-delivery', name: "Santa's Delivery", icon: '\uD83C\uDF85', playable: true },
+    // Coming soon
     { id: 'letter-rain', name: 'Letter Rain', icon: '\uD83C\uDF27\uFE0F', playable: false },
     { id: 'spell-garden', name: 'Spell Garden', icon: '\uD83C\uDF3B', playable: false },
     { id: 'word-rescue', name: 'Word Rescue', icon: '\uD83D\uDE80', playable: false },
-    { id: 'santa-delivery', name: "Santa's Delivery", icon: '\uD83C\uDF85', playable: true },
     { id: 'letter-chef', name: 'Letter Chef', icon: '\uD83D\uDC68\u200D\uD83C\uDF73', playable: false },
     { id: 'word-train', name: 'Word Train', icon: '\uD83D\uDE82', playable: false },
     { id: 'spell-castle', name: 'Spell Castle', icon: '\uD83C\uDFF0', playable: false },
@@ -17,7 +19,7 @@
 
   // Settings
   var sharedSettings = { muted: false };
-  var spellingSettings = { words: [] };
+  var spellingSettings = { words: [], timed: true };
 
   function loadSettings() {
     try {
@@ -34,6 +36,7 @@
         var parsed = JSON.parse(saved);
         spellingSettings = {
           words: parsed.words || [],
+          timed: parsed.timed !== undefined ? parsed.timed : true,
         };
       }
     } catch (e) {}
@@ -70,7 +73,7 @@
       card.className = 'subject-game-card ' + (game.playable ? 'playable' : 'locked');
 
       if (game.playable) {
-        card.href = 'game.html?game=' + game.id + '&subject=spelling&difficulty=easy&presentation=audio-picture';
+        card.href = 'game.html?game=' + game.id + '&subject=spelling&difficulty=easy&presentation=audio-picture&timed=' + spellingSettings.timed;
       }
 
       var icon = document.createElement('div');
@@ -123,6 +126,37 @@
     }
   }
 
+  // Setup timed/relaxed toggle
+  function setupTimedToggle() {
+    var toggle = document.getElementById('spelling-timed-toggle');
+    if (!toggle) return;
+
+    var timedBtn = toggle.querySelector('[data-mode="timed"]');
+    var relaxedBtn = toggle.querySelector('[data-mode="relaxed"]');
+    if (!timedBtn || !relaxedBtn) return;
+
+    function updateToggle() {
+      timedBtn.classList.toggle('active', spellingSettings.timed);
+      relaxedBtn.classList.toggle('active', !spellingSettings.timed);
+    }
+
+    updateToggle();
+
+    timedBtn.addEventListener('click', function () {
+      spellingSettings.timed = true;
+      saveSpellingSettings();
+      updateToggle();
+      buildGameGrid(); // Rebuild to update hrefs
+    });
+
+    relaxedBtn.addEventListener('click', function () {
+      spellingSettings.timed = false;
+      saveSpellingSettings();
+      updateToggle();
+      buildGameGrid();
+    });
+  }
+
   // Setup audio toggle
   function setupAudioToggle() {
     var btn = document.getElementById('audio-toggle');
@@ -161,6 +195,7 @@
     loadSettings();
     buildGameGrid();
     setupWordInput();
+    setupTimedToggle();
     setupAudioToggle();
     setupAudioUnlock();
   }
