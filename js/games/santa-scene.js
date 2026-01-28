@@ -34,6 +34,7 @@ var SantaScene = new Phaser.Class({
     this.presentDropping = false;
     this.timerBar = null;
     this.timerBarBg = null;
+    this.easterEggActive = false;
   },
 
   create: function () {
@@ -63,6 +64,9 @@ var SantaScene = new Phaser.Class({
 
     // Santa's sleigh (top area)
     this.createSleigh(w, h);
+
+    // Start random Easter egg events
+    this.startEasterEggs();
 
     // Notify SantaDelivery that scene is ready (passes this scene ref)
     if (typeof SantaDelivery !== 'undefined' && SantaDelivery._pendingInit) {
@@ -605,6 +609,716 @@ var SantaScene = new Phaser.Class({
       });
     }
   },
+
+  // ─── EASTER EGGS ─────────────────────────────────────────────
+  // Random events that spawn during gameplay to surprise and delight.
+  // Rarity: common (40%), uncommon (15% each), rare (5% each)
+
+  startEasterEggs: function () {
+    this.easterEggActive = false;
+    this.scheduleNextEasterEgg();
+  },
+
+  scheduleNextEasterEgg: function () {
+    // Random delay: 8-18 seconds between events
+    var delay = 8000 + Math.random() * 10000;
+    this.time.delayedCall(delay, function () {
+      if (!this.scene.isActive()) return;
+      this.spawnRandomEvent();
+      this.scheduleNextEasterEgg();
+    }.bind(this));
+  },
+
+  spawnRandomEvent: function () {
+    if (this.easterEggActive) return;
+    this.easterEggActive = true;
+
+    // Weighted random pick
+    var roll = Math.random() * 100;
+    if (roll < 30) {
+      this.eggShootingStar();
+    } else if (roll < 48) {
+      this.eggRudolph();
+    } else if (roll < 63) {
+      this.eggPenguin();
+    } else if (roll < 78) {
+      this.eggSnowman();
+    } else if (roll < 88) {
+      this.eggUFO();
+    } else if (roll < 95) {
+      this.eggElfRocket();
+    } else {
+      this.eggNorthernLights();
+    }
+  },
+
+  // --- Shooting Star (common ~30%) ---
+  // A bright streak arcs across the upper sky with a sparkle trail.
+
+  eggShootingStar: function () {
+    var w = this.scale.width;
+    var h = this.scale.height;
+    var startX = Math.random() * w * 0.3;
+    var startY = Math.random() * h * 0.15 + 10;
+    var endX = startX + w * 0.5 + Math.random() * w * 0.3;
+    var endY = startY + h * 0.15 + Math.random() * h * 0.1;
+
+    var star = this.add.graphics();
+    star.setDepth(40);
+    star.x = startX;
+    star.y = startY;
+
+    // Bright core
+    star.fillStyle(0xffffff, 1);
+    star.fillCircle(0, 0, 3);
+    // Glow
+    star.fillStyle(0xfff9c4, 0.4);
+    star.fillCircle(0, 0, 8);
+
+    // Trail particles
+    var trailGfx = this.make.graphics({ x: 0, y: 0, add: false });
+    trailGfx.fillStyle(0xfff9c4, 1);
+    trailGfx.fillCircle(2, 2, 2);
+    trailGfx.generateTexture('startrail', 4, 4);
+    trailGfx.destroy();
+
+    var trail = this.add.particles(startX, startY, 'startrail', {
+      speed: { min: 5, max: 15 },
+      lifespan: 400,
+      scale: { start: 0.8, end: 0 },
+      alpha: { start: 0.8, end: 0 },
+      frequency: 20,
+      quantity: 1,
+      blendMode: 'ADD',
+    });
+    trail.setDepth(39);
+
+    var scene = this;
+    this.tweens.add({
+      targets: star,
+      x: endX,
+      y: endY,
+      alpha: 0,
+      duration: 800 + Math.random() * 400,
+      ease: 'Cubic.easeIn',
+      onUpdate: function () {
+        trail.setPosition(star.x, star.y);
+      },
+      onComplete: function () {
+        star.destroy();
+        trail.stop();
+        scene.time.delayedCall(500, function () { trail.destroy(); });
+        scene.easterEggActive = false;
+      },
+    });
+  },
+
+  // --- Rudolph (uncommon ~18%) ---
+  // A reindeer with a glowing red nose flies across the sky.
+
+  eggRudolph: function () {
+    var w = this.scale.width;
+    var h = this.scale.height;
+    var y = h * 0.25 + Math.random() * h * 0.15;
+    var fromLeft = Math.random() > 0.5;
+    var startX = fromLeft ? -60 : w + 60;
+    var endX = fromLeft ? w + 60 : -60;
+
+    var rudolf = this.add.container(startX, y);
+    rudolf.setDepth(42);
+    var gfx = this.add.graphics();
+    var dir = fromLeft ? 1 : -1;
+
+    // Body (brown)
+    gfx.fillStyle(0x8b6914, 1);
+    gfx.fillEllipse(0, 0, 36, 18);
+
+    // Head
+    gfx.fillStyle(0x8b6914, 1);
+    gfx.fillCircle(18 * dir, -6, 9);
+
+    // Antlers
+    gfx.lineStyle(2, 0x5c3d0e, 1);
+    gfx.beginPath();
+    gfx.moveTo(14 * dir, -14);
+    gfx.lineTo(12 * dir, -26);
+    gfx.lineTo(6 * dir, -24);
+    gfx.moveTo(12 * dir, -26);
+    gfx.lineTo(18 * dir, -28);
+    gfx.strokePath();
+    gfx.beginPath();
+    gfx.moveTo(22 * dir, -14);
+    gfx.lineTo(24 * dir, -26);
+    gfx.lineTo(20 * dir, -28);
+    gfx.moveTo(24 * dir, -26);
+    gfx.lineTo(28 * dir, -24);
+    gfx.strokePath();
+
+    // Glowing red nose!
+    gfx.fillStyle(0xff0000, 0.3);
+    gfx.fillCircle(26 * dir, -5, 8);
+    gfx.fillStyle(0xff0000, 1);
+    gfx.fillCircle(26 * dir, -5, 4);
+
+    // Eye
+    gfx.fillStyle(0x000000, 1);
+    gfx.fillCircle(20 * dir, -8, 2);
+
+    // Legs (little lines)
+    gfx.lineStyle(2, 0x6b4f10, 1);
+    gfx.beginPath();
+    gfx.moveTo(-6, 8); gfx.lineTo(-8, 18);
+    gfx.moveTo(0, 8); gfx.lineTo(-2, 18);
+    gfx.moveTo(6, 8); gfx.lineTo(4, 18);
+    gfx.moveTo(12, 8); gfx.lineTo(10, 18);
+    gfx.strokePath();
+
+    // Tail
+    gfx.fillStyle(0x5c3d0e, 1);
+    gfx.fillCircle(-18 * dir, -3, 4);
+
+    rudolf.add(gfx);
+
+    var scene = this;
+    // Gentle bobbing while flying
+    this.tweens.add({
+      targets: rudolf,
+      y: y - 8,
+      duration: 400,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    this.tweens.add({
+      targets: rudolf,
+      x: endX,
+      duration: 4000 + Math.random() * 1500,
+      ease: 'Linear',
+      onComplete: function () {
+        rudolf.destroy();
+        scene.easterEggActive = false;
+      },
+    });
+  },
+
+  // --- Penguin (uncommon ~15%) ---
+  // A penguin slides across the snowy ground on its belly.
+
+  eggPenguin: function () {
+    var w = this.scale.width;
+    var groundY = this.groundY;
+    var fromLeft = Math.random() > 0.5;
+    var startX = fromLeft ? -40 : w + 40;
+    var endX = fromLeft ? w + 40 : -40;
+
+    var penguin = this.add.container(startX, groundY - 12);
+    penguin.setDepth(35);
+    var gfx = this.add.graphics();
+
+    // Body (black oval)
+    gfx.fillStyle(0x2d3436, 1);
+    gfx.fillEllipse(0, 0, 20, 16);
+
+    // Belly (white)
+    gfx.fillStyle(0xffffff, 1);
+    gfx.fillEllipse(0, 2, 12, 11);
+
+    // Head
+    gfx.fillStyle(0x2d3436, 1);
+    gfx.fillCircle(0, -10, 8);
+
+    // Eyes
+    gfx.fillStyle(0xffffff, 1);
+    gfx.fillCircle(-3, -11, 3);
+    gfx.fillCircle(3, -11, 3);
+    gfx.fillStyle(0x000000, 1);
+    gfx.fillCircle(-3, -11, 1.5);
+    gfx.fillCircle(3, -11, 1.5);
+
+    // Beak (orange)
+    gfx.fillStyle(0xf39c12, 1);
+    gfx.beginPath();
+    gfx.moveTo(-3, -8);
+    gfx.lineTo(0, -5);
+    gfx.lineTo(3, -8);
+    gfx.closePath();
+    gfx.fillPath();
+
+    // Little feet sticking up behind (belly slide!)
+    gfx.fillStyle(0xf39c12, 1);
+    var backDir = fromLeft ? -1 : 1;
+    gfx.fillEllipse(8 * backDir, 6, 6, 4);
+    gfx.fillEllipse(12 * backDir, 4, 6, 4);
+
+    // Scarf (red)
+    gfx.fillStyle(0xe74c3c, 1);
+    gfx.fillRect(-7, -5, 14, 3);
+    // Scarf tail flying behind
+    gfx.fillStyle(0xe74c3c, 1);
+    gfx.fillRect(6 * backDir, -5, 10, 2);
+    gfx.fillRect(10 * backDir, -4, 8, 2);
+
+    penguin.add(gfx);
+
+    // Snow spray particles behind
+    var sprayGfx = this.make.graphics({ x: 0, y: 0, add: false });
+    sprayGfx.fillStyle(0xffffff, 1);
+    sprayGfx.fillCircle(2, 2, 2);
+    sprayGfx.generateTexture('penguinspray', 4, 4);
+    sprayGfx.destroy();
+
+    var spray = this.add.particles(startX, groundY - 2, 'penguinspray', {
+      speed: { min: 10, max: 30 },
+      angle: fromLeft ? { min: 130, max: 170 } : { min: 10, max: 50 },
+      lifespan: 300,
+      scale: { start: 0.5, end: 0 },
+      alpha: { start: 0.6, end: 0 },
+      frequency: 50,
+      quantity: 2,
+    });
+    spray.setDepth(34);
+
+    var scene = this;
+    this.tweens.add({
+      targets: penguin,
+      x: endX,
+      duration: 3000 + Math.random() * 1000,
+      ease: 'Linear',
+      onUpdate: function () {
+        spray.setPosition(penguin.x, groundY - 2);
+      },
+      onComplete: function () {
+        penguin.destroy();
+        spray.stop();
+        scene.time.delayedCall(400, function () { spray.destroy(); });
+        scene.easterEggActive = false;
+      },
+    });
+  },
+
+  // --- Snowman (uncommon ~15%) ---
+  // A snowman pops up from behind the snow, waves, then sinks back down.
+
+  eggSnowman: function () {
+    var w = this.scale.width;
+    var groundY = this.groundY;
+    // Appear on left or right side to avoid the house
+    var side = Math.random() > 0.5;
+    var x = side ? w * 0.15 + Math.random() * w * 0.15 : w * 0.7 + Math.random() * w * 0.15;
+
+    var snowman = this.add.container(x, groundY + 40);
+    snowman.setDepth(32);
+    var gfx = this.add.graphics();
+
+    // Bottom snowball
+    gfx.fillStyle(0xffffff, 1);
+    gfx.fillCircle(0, 0, 16);
+    // Middle snowball
+    gfx.fillCircle(0, -20, 12);
+    // Head
+    gfx.fillCircle(0, -36, 9);
+
+    // Eyes (coal)
+    gfx.fillStyle(0x2d3436, 1);
+    gfx.fillCircle(-3, -38, 2);
+    gfx.fillCircle(3, -38, 2);
+
+    // Carrot nose
+    gfx.fillStyle(0xf39c12, 1);
+    gfx.beginPath();
+    gfx.moveTo(0, -35);
+    gfx.lineTo(8, -34);
+    gfx.lineTo(0, -33);
+    gfx.closePath();
+    gfx.fillPath();
+
+    // Smile (dots)
+    gfx.fillStyle(0x2d3436, 1);
+    gfx.fillCircle(-4, -32, 1);
+    gfx.fillCircle(-1, -30.5, 1);
+    gfx.fillCircle(2, -30.5, 1);
+    gfx.fillCircle(5, -32, 1);
+
+    // Top hat
+    gfx.fillStyle(0x2d3436, 1);
+    gfx.fillRect(-7, -52, 14, 12);
+    gfx.fillRect(-10, -42, 20, 3);
+
+    // Buttons
+    gfx.fillStyle(0x2d3436, 1);
+    gfx.fillCircle(0, -24, 2);
+    gfx.fillCircle(0, -18, 2);
+    gfx.fillCircle(0, -12, 2);
+
+    // Stick arms
+    gfx.lineStyle(2, 0x5c3d0e, 1);
+    gfx.beginPath();
+    gfx.moveTo(-12, -20);
+    gfx.lineTo(-28, -30);
+    gfx.moveTo(-24, -28);
+    gfx.lineTo(-28, -34);
+    gfx.moveTo(-24, -28);
+    gfx.lineTo(-30, -28);
+    gfx.strokePath();
+
+    // Right arm (will wave)
+    var waveArm = this.add.graphics();
+    waveArm.lineStyle(2, 0x5c3d0e, 1);
+    waveArm.beginPath();
+    waveArm.moveTo(0, 0);
+    waveArm.lineTo(16, -10);
+    waveArm.moveTo(12, -8);
+    waveArm.lineTo(16, -14);
+    waveArm.moveTo(12, -8);
+    waveArm.lineTo(18, -8);
+    waveArm.strokePath();
+    waveArm.x = 12;
+    waveArm.y = -20;
+
+    snowman.add(gfx);
+    snowman.add(waveArm);
+
+    var scene = this;
+
+    // Pop up from ground
+    this.tweens.add({
+      targets: snowman,
+      y: groundY - 6,
+      duration: 800,
+      ease: 'Back.easeOut',
+      onComplete: function () {
+        // Wave the arm back and forth
+        scene.tweens.add({
+          targets: waveArm,
+          angle: -25,
+          duration: 300,
+          yoyo: true,
+          repeat: 4,
+          ease: 'Sine.easeInOut',
+          onComplete: function () {
+            // Pause, then sink back down
+            scene.time.delayedCall(400, function () {
+              scene.tweens.add({
+                targets: snowman,
+                y: groundY + 50,
+                duration: 600,
+                ease: 'Back.easeIn',
+                onComplete: function () {
+                  snowman.destroy();
+                  scene.easterEggActive = false;
+                },
+              });
+            });
+          },
+        });
+      },
+    });
+  },
+
+  // --- UFO (rare ~10%) ---
+  // A flying saucer zips across the sky with blinking colored lights.
+
+  eggUFO: function () {
+    var w = this.scale.width;
+    var h = this.scale.height;
+    var y = h * 0.1 + Math.random() * h * 0.2;
+    var fromLeft = Math.random() > 0.5;
+    var startX = fromLeft ? -50 : w + 50;
+    var endX = fromLeft ? w + 50 : -50;
+
+    var ufo = this.add.container(startX, y);
+    ufo.setDepth(43);
+    var gfx = this.add.graphics();
+
+    // Saucer body (silver)
+    gfx.fillStyle(0xbdc3c7, 1);
+    gfx.fillEllipse(0, 0, 44, 12);
+
+    // Dome (teal glass)
+    gfx.fillStyle(0x00cec9, 0.6);
+    gfx.fillEllipse(0, -6, 22, 14);
+    // Dome highlight
+    gfx.fillStyle(0xffffff, 0.3);
+    gfx.fillEllipse(-3, -9, 10, 6);
+
+    // Bottom ring
+    gfx.fillStyle(0x95a5a6, 1);
+    gfx.fillEllipse(0, 3, 36, 6);
+
+    // Colored lights (will blink)
+    var lightColors = [0xe74c3c, 0x2ecc71, 0xf1c40f, 0x6c5ce7, 0x00cec9];
+    var lights = [];
+    for (var i = 0; i < 5; i++) {
+      var angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+      var lx = Math.cos(angle) * 16;
+      var ly = Math.sin(angle) * 4 + 3;
+      var light = this.add.circle(lx, ly, 2.5, lightColors[i]);
+      light.setData('baseColor', lightColors[i]);
+      light.setData('blinkPhase', i * 0.4);
+      lights.push(light);
+      ufo.add(light);
+    }
+
+    ufo.add(gfx);
+    // Bring lights in front of body
+    for (var j = 0; j < lights.length; j++) {
+      ufo.bringToTop(lights[j]);
+    }
+
+    // Beam of light (tractor beam look - fades in and out)
+    var beam = this.add.graphics();
+    beam.fillStyle(0x00cec9, 0.12);
+    beam.beginPath();
+    beam.moveTo(-10, 0);
+    beam.lineTo(-30, 60);
+    beam.lineTo(30, 60);
+    beam.lineTo(10, 0);
+    beam.closePath();
+    beam.fillPath();
+    ufo.add(beam);
+
+    // Blink lights in update-like fashion
+    var blinkTimer = this.time.addEvent({
+      delay: 100,
+      loop: true,
+      callback: function () {
+        var t = this.time.now * 0.005;
+        for (var k = 0; k < lights.length; k++) {
+          var phase = lights[k].getData('blinkPhase');
+          lights[k].alpha = 0.3 + Math.abs(Math.sin(t + phase)) * 0.7;
+        }
+      }.bind(this),
+    });
+
+    var scene = this;
+    // UFO wobbles and zips fast
+    this.tweens.add({
+      targets: ufo,
+      y: y - 10,
+      duration: 300,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    this.tweens.add({
+      targets: ufo,
+      x: endX,
+      duration: 2500 + Math.random() * 1000,
+      ease: 'Sine.easeInOut', // eases in and out - looks like it slows to look around
+      onComplete: function () {
+        blinkTimer.destroy();
+        ufo.destroy();
+        scene.easterEggActive = false;
+      },
+    });
+  },
+
+  // --- Elf on a Rocket (rare ~7%) ---
+  // A little elf rides a candy-cane-striped rocket across the sky, trailing sparkles.
+
+  eggElfRocket: function () {
+    var w = this.scale.width;
+    var h = this.scale.height;
+    var y = h * 0.2 + Math.random() * h * 0.2;
+    var fromLeft = Math.random() > 0.5;
+    var startX = fromLeft ? -50 : w + 50;
+    var endX = fromLeft ? w + 80 : -80;
+    var dir = fromLeft ? 1 : -1;
+
+    var rocket = this.add.container(startX, y);
+    rocket.setDepth(44);
+    var gfx = this.add.graphics();
+
+    // Rocket body - candy cane stripes (red and white)
+    for (var s = 0; s < 5; s++) {
+      gfx.fillStyle(s % 2 === 0 ? 0xe74c3c : 0xffffff, 1);
+      gfx.fillRect(-20 + s * 8 * dir, -5, 8, 10);
+    }
+    // Rounded nose
+    gfx.fillStyle(0xe74c3c, 1);
+    gfx.fillCircle(20 * dir, 0, 5);
+    // Fins
+    gfx.fillStyle(0x2ecc71, 1);
+    gfx.beginPath();
+    gfx.moveTo(-20 * dir, -5);
+    gfx.lineTo(-28 * dir, -12);
+    gfx.lineTo(-20 * dir, 0);
+    gfx.closePath();
+    gfx.fillPath();
+    gfx.beginPath();
+    gfx.moveTo(-20 * dir, 5);
+    gfx.lineTo(-28 * dir, 12);
+    gfx.lineTo(-20 * dir, 0);
+    gfx.closePath();
+    gfx.fillPath();
+
+    // Elf riding on top
+    // Body (green)
+    gfx.fillStyle(0x2ecc71, 1);
+    gfx.fillCircle(5 * dir, -12, 7);
+    // Head (skin tone)
+    gfx.fillStyle(0xfdd9b5, 1);
+    gfx.fillCircle(5 * dir, -22, 6);
+    // Elf hat (green with red tip)
+    gfx.fillStyle(0x2ecc71, 1);
+    gfx.beginPath();
+    gfx.moveTo(0 * dir, -26);
+    gfx.lineTo(5 * dir, -36);
+    gfx.lineTo(10 * dir, -26);
+    gfx.closePath();
+    gfx.fillPath();
+    // Hat tip (red ball)
+    gfx.fillStyle(0xe74c3c, 1);
+    gfx.fillCircle(5 * dir, -36, 2.5);
+    // Elf ears (pointy)
+    gfx.fillStyle(0xfdd9b5, 1);
+    gfx.beginPath();
+    gfx.moveTo(-1 * dir, -22);
+    gfx.lineTo(-5 * dir, -25);
+    gfx.lineTo(-1 * dir, -20);
+    gfx.closePath();
+    gfx.fillPath();
+    // Eyes (excited!)
+    gfx.fillStyle(0x000000, 1);
+    gfx.fillCircle(3 * dir, -23, 1.5);
+    gfx.fillCircle(7 * dir, -23, 1.5);
+    // Big smile
+    gfx.lineStyle(1, 0x000000, 1);
+    gfx.beginPath();
+    gfx.arc(5 * dir, -20, 3, 0, Math.PI);
+    gfx.strokePath();
+
+    rocket.add(gfx);
+
+    // Sparkle trail behind
+    var sparkGfx = this.make.graphics({ x: 0, y: 0, add: false });
+    sparkGfx.fillStyle(0xffffff, 1);
+    sparkGfx.fillCircle(3, 3, 3);
+    sparkGfx.generateTexture('elfsparkle', 6, 6);
+    sparkGfx.destroy();
+
+    var trail = this.add.particles(startX, y, 'elfsparkle', {
+      speed: { min: 20, max: 50 },
+      angle: fromLeft ? { min: 150, max: 210 } : { min: -30, max: 30 },
+      lifespan: 500,
+      scale: { start: 0.6, end: 0 },
+      alpha: { start: 1, end: 0 },
+      frequency: 30,
+      quantity: 2,
+      tint: [0xf1c40f, 0xe74c3c, 0x2ecc71, 0xffffff, 0x6c5ce7],
+      blendMode: 'ADD',
+    });
+    trail.setDepth(43);
+
+    var scene = this;
+    // Slight wave pattern as it flies
+    this.tweens.add({
+      targets: rocket,
+      y: y - 15,
+      duration: 500,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    this.tweens.add({
+      targets: rocket,
+      x: endX,
+      duration: 2800 + Math.random() * 800,
+      ease: 'Linear',
+      onUpdate: function () {
+        trail.setPosition(rocket.x - 20 * dir, rocket.y);
+      },
+      onComplete: function () {
+        rocket.destroy();
+        trail.stop();
+        scene.time.delayedCall(600, function () { trail.destroy(); });
+        scene.easterEggActive = false;
+      },
+    });
+  },
+
+  // --- Northern Lights (very rare ~5%) ---
+  // Shimmering green/purple aurora bands ripple across the top of the sky.
+
+  eggNorthernLights: function () {
+    var w = this.scale.width;
+    var h = this.scale.height;
+
+    var aurora = this.add.container(0, 0);
+    aurora.setDepth(8); // behind clouds but above stars
+    aurora.alpha = 0;
+
+    var colors = [
+      { color: 0x2ecc71, y: h * 0.02, height: h * 0.08 },
+      { color: 0x6c5ce7, y: h * 0.06, height: h * 0.06 },
+      { color: 0x00cec9, y: h * 0.01, height: h * 0.07 },
+      { color: 0x2ecc71, y: h * 0.09, height: h * 0.05 },
+    ];
+
+    var bands = [];
+    for (var i = 0; i < colors.length; i++) {
+      var band = this.add.graphics();
+      band.fillStyle(colors[i].color, 0.12 + Math.random() * 0.06);
+      // Wavy band shape
+      band.beginPath();
+      band.moveTo(0, colors[i].y);
+      for (var bx = 0; bx <= w; bx += 15) {
+        var wave = Math.sin(bx * 0.01 + i * 1.5) * 12;
+        band.lineTo(bx, colors[i].y + wave);
+      }
+      for (var bx2 = w; bx2 >= 0; bx2 -= 15) {
+        var wave2 = Math.sin(bx2 * 0.01 + i * 1.5 + 1) * 12;
+        band.lineTo(bx2, colors[i].y + colors[i].height + wave2);
+      }
+      band.closePath();
+      band.fillPath();
+      aurora.add(band);
+      bands.push(band);
+    }
+
+    var scene = this;
+
+    // Fade in
+    this.tweens.add({
+      targets: aurora,
+      alpha: 1,
+      duration: 2000,
+      ease: 'Sine.easeIn',
+      onComplete: function () {
+        // Shimmer the bands
+        for (var b = 0; b < bands.length; b++) {
+          scene.tweens.add({
+            targets: bands[b],
+            alpha: 0.3 + Math.random() * 0.5,
+            duration: 800 + Math.random() * 400,
+            yoyo: true,
+            repeat: 3,
+            ease: 'Sine.easeInOut',
+            delay: b * 200,
+          });
+        }
+
+        // Fade out after shimmer
+        scene.time.delayedCall(5000, function () {
+          scene.tweens.add({
+            targets: aurora,
+            alpha: 0,
+            duration: 2000,
+            ease: 'Sine.easeOut',
+            onComplete: function () {
+              aurora.destroy();
+              scene.easterEggActive = false;
+            },
+          });
+        });
+      },
+    });
+  },
+
+  // ─── END EASTER EGGS ───────────────────────────────────────
 
   // --- Cleanup ---
 
