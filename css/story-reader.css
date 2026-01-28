@@ -87,6 +87,18 @@
   font-size: 1.4rem;
 }
 
+/* Settings Panel (always visible) */
+.story-settings-panel {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  animation: slideInUp 0.5s ease-out 0.4s both;
+}
+
 /* Display Panel */
 .story-display-panel {
   background: var(--color-white);
@@ -160,7 +172,6 @@
   display: flex;
   justify-content: center;
   gap: var(--space-md);
-  margin-bottom: var(--space-lg);
 }
 
 .story-control-btn {
@@ -285,6 +296,7 @@
 /* Landscape adjustments */
 @media (orientation: landscape) {
   .story-input-panel,
+  .story-settings-panel,
   .story-display-panel,
   .story-controls {
     max-width: 600px;
@@ -307,6 +319,7 @@
 /* iPad-specific sizing */
 @media (min-width: 768px) {
   .story-input-panel,
+  .story-settings-panel,
   .story-display-panel,
   .story-controls {
     max-width: 600px;

@@ -76,6 +76,9 @@ const StoryReader = (function() {
     }
   }
 
+  // Store deduplicated voices for lookup
+  let availableVoices = [];
+
   /**
    * Setup available voices
    */
@@ -89,13 +92,32 @@ const StoryReader = (function() {
         v.lang.startsWith('en')
       );
 
+      // Deduplicate: prefer Enhanced versions, keep only one per base name
+      const voiceMap = new Map();
+      englishVoices.forEach(voice => {
+        const baseName = voice.name.replace(/\s*\(Enhanced\)\s*/i, '').trim();
+        const existing = voiceMap.get(baseName);
+
+        // Keep this voice if no existing, or if this one is Enhanced
+        if (!existing || voice.name.includes('Enhanced')) {
+          voiceMap.set(baseName, voice);
+        }
+      });
+
+      // Convert to array and sort
+      availableVoices = Array.from(voiceMap.values());
+
       // Sort: prioritize Samantha (friendly), then other en-US, then en-GB
-      englishVoices.sort((a, b) => {
+      availableVoices.sort((a, b) => {
         if (a.name.includes('Samantha')) return -1;
         if (b.name.includes('Samantha')) return 1;
         if (a.lang === 'en-US' && b.lang !== 'en-US') return -1;
         if (b.lang === 'en-US' && a.lang !== 'en-US') return 1;
-        return a.name.localeCompare(b.name);
+
+        // Sort by base name
+        const nameA = a.name.replace(/\s*\(Enhanced\)\s*/i, '').trim();
+        const nameB = b.name.replace(/\s*\(Enhanced\)\s*/i, '').trim();
+        return nameA.localeCompare(nameB);
       });
 
       // Clear and repopulate select using DOM methods
@@ -103,10 +125,12 @@ const StoryReader = (function() {
         voiceSelect.removeChild(voiceSelect.firstChild);
       }
 
-      englishVoices.forEach((voice, index) => {
+      availableVoices.forEach((voice, index) => {
         const option = document.createElement('option');
         option.value = index;
-        option.textContent = voice.name.replace('(Enhanced)', '').trim();
+        // Show base name, add star if Enhanced
+        const baseName = voice.name.replace(/\s*\(Enhanced\)\s*/i, '').trim();
+        option.textContent = baseName + (voice.name.includes('Enhanced') ? ' ★' : '');
         option.dataset.voiceName = voice.name;
         voiceSelect.appendChild(option);
       });
@@ -122,7 +146,7 @@ const StoryReader = (function() {
         }
       }
 
-      selectedVoice = englishVoices[voiceSelect.value] || englishVoices[0];
+      selectedVoice = availableVoices[voiceSelect.value] || availableVoices[0];
     };
 
     // Voices may load async
@@ -149,8 +173,7 @@ const StoryReader = (function() {
 
     // Voice selection
     voiceSelect.addEventListener('change', () => {
-      const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
-      selectedVoice = voices[voiceSelect.value];
+      selectedVoice = availableVoices[voiceSelect.value];
       localStorage.setItem(STORAGE_VOICE, selectedVoice?.name || '');
     });
 

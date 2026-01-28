@@ -34,24 +34,8 @@
       </button>
     </div>
 
-    <!-- Reader Display Panel (hidden until reading) -->
-    <div class="story-display-panel hidden" id="story-display-panel">
-      <div class="story-display" id="story-display">
-        <!-- Words will be inserted here as spans -->
-      </div>
-    </div>
-
-    <!-- Playback Controls (hidden until reading) -->
-    <div class="story-controls hidden" id="story-controls">
-      <div class="story-controls-row">
-        <button class="story-control-btn" id="story-play-pause-btn" aria-label="Play/Pause">
-          <span id="play-pause-icon">&#x25B6;&#xFE0F;</span>
-        </button>
-        <button class="story-control-btn" id="story-stop-btn" aria-label="Stop">
-          &#x23F9;&#xFE0F;
-        </button>
-      </div>
-
+    <!-- Voice & Speed Settings (always visible) -->
+    <div class="story-settings-panel" id="story-settings-panel">
       <div class="story-settings">
         <div class="story-setting">
           <label class="story-setting-label" for="voice-select">Voice</label>
@@ -75,6 +59,25 @@
             <span class="story-slider-value" id="speed-value">0.9x</span>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Reader Display Panel (hidden until reading) -->
+    <div class="story-display-panel hidden" id="story-display-panel">
+      <div class="story-display" id="story-display">
+        <!-- Words will be inserted here as spans -->
+      </div>
+    </div>
+
+    <!-- Playback Controls (hidden until reading) -->
+    <div class="story-controls hidden" id="story-controls">
+      <div class="story-controls-row">
+        <button class="story-control-btn" id="story-play-pause-btn" aria-label="Play/Pause">
+          <span id="play-pause-icon">&#x25B6;&#xFE0F;</span>
+        </button>
+        <button class="story-control-btn" id="story-stop-btn" aria-label="Stop">
+          &#x23F9;&#xFE0F;
+        </button>
       </div>
     </div>
 
