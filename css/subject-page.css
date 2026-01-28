@@ -56,8 +56,24 @@
   font-size: 1.1rem;
   color: var(--color-text-light);
   text-align: center;
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-sm);
   animation: fadeIn 0.6s ease-out 0.2s both;
+}
+
+/* Cross-link to other subject */
+.subject-switch-link {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-primary-light);
+  text-decoration: none;
+  margin-bottom: var(--space-xl);
+  display: inline-block;
+  transition: color 0.2s;
+  animation: fadeIn 0.6s ease-out 0.3s both;
+}
+
+.subject-switch-link:active {
+  color: var(--color-primary);
 }
 
 /* Settings Panel */
