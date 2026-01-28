@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mathfun-v2';
+const CACHE_NAME = 'mathfun-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

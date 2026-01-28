@@ -300,33 +300,33 @@ const AnimalCrossing = (() => {
     car.style.alignItems = 'center';
     car.style.justifyContent = 'center';
 
-    // Random vertical position on the road
-    const roadTop = 35; // percentage
-    const roadBottom = 85;
-    const topPos = roadTop + Math.random() * (roadBottom - roadTop);
-    car.style.top = `${topPos}%`;
+    // Random horizontal position on the road (between waiting and safe zones)
+    const roadLeft = 22; // percentage - inside the road area
+    const roadRight = 72;
+    const leftPos = roadLeft + Math.random() * (roadRight - roadLeft);
+    car.style.left = `${leftPos}%`;
 
-    // Determine direction
-    const goingRight = Math.random() > 0.5;
-    if (goingRight) {
-      car.style.left = '-80px';
-      car.style.transform = 'scaleX(1)';
+    // Determine direction: top-to-bottom or bottom-to-top
+    const goingDown = Math.random() > 0.5;
+    if (goingDown) {
+      car.style.top = '-60px';
+      car.style.transform = 'rotate(90deg)';
     } else {
-      car.style.left = 'calc(100% + 80px)';
-      car.style.transform = 'scaleX(-1)';
+      car.style.top = 'calc(100% + 60px)';
+      car.style.transform = 'rotate(-90deg)';
     }
 
     sceneEl.appendChild(car);
 
-    // Animate across
+    // Animate down/up the road
     requestAnimationFrame(() => {
       car.classList.add('driving');
       const speed = isHonk ? 1.2 : 2;
-      car.style.transition = `left ${speed}s linear`;
-      if (goingRight) {
-        car.style.left = 'calc(100% + 80px)';
+      car.style.transition = `top ${speed}s linear`;
+      if (goingDown) {
+        car.style.top = 'calc(100% + 60px)';
       } else {
-        car.style.left = '-80px';
+        car.style.top = '-60px';
       }
     });
 

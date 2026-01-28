@@ -518,7 +518,7 @@
 }
 
 .ac-car.driving {
-  transition: left 2s linear;
+  transition: top 2s linear;
 }
 
 /* Saved animals on safe side */
