@@ -272,8 +272,8 @@ const GameBase = (() => {
         gameCallbacks.onCorrect(result.question, session.currentIndex - 1);
       }
 
-      // Delay before next question for animation time
-      const delay = result.isCheckpoint ? 2500 : result.isComplete ? 100 : 1500;
+      // Delay before next question for animation time + breathing room after answer audio
+      const delay = result.isCheckpoint ? 4500 : result.isComplete ? 100 : 3500;
 
       if (result.isCheckpoint) {
         setTimeout(() => showCheckpointCelebration(), 800);
