@@ -1,6 +1,7 @@
 /**
  * Story Reader Module
  * Reads stories aloud with word-by-word highlighting using Web Speech API
+ * Uses word-by-word speaking for perfect sync
  */
 const StoryReader = (function() {
   // DOM elements
@@ -11,21 +12,14 @@ const StoryReader = (function() {
   let audioToggle, audioIcon;
 
   // State
-  let utterance = null;
   let isPaused = false;
   let isReading = false;
   let currentWordIndex = -1;
   let words = [];
   let wordElements = [];
-  let charToWordMap = [];
   let selectedVoice = null;
   let speechRate = 0.9;
   let isMuted = false;
-
-  // Fallback timing for browsers without boundary events
-  let wordTimingInterval = null;
-  let wordStartTime = 0;
-  let boundarySupported = true;
 
   // Storage keys
   const STORAGE_DRAFT = 'avagames-story-draft';
@@ -90,7 +84,7 @@ const StoryReader = (function() {
       const voices = speechSynthesis.getVoices();
       if (voices.length === 0) return;
 
-      // Filter to English voices, prefer those with "child" or friendly names
+      // Filter to English voices
       const englishVoices = voices.filter(v =>
         v.lang.startsWith('en')
       );
@@ -220,27 +214,21 @@ const StoryReader = (function() {
 
   /**
    * Prepare the story text for display
-   * Splits into words and creates character-to-word mapping
+   * Splits into words and creates spans for each
    */
   function prepareStory(text) {
     words = [];
     wordElements = [];
-    charToWordMap = [];
     clearElement(display);
-
-    let charIndex = 0;
 
     // Split by whitespace but preserve structure
     const tokens = text.split(/(\s+)/);
 
     tokens.forEach(token => {
       if (/^\s+$/.test(token)) {
-        // Whitespace - add to display and map
+        // Whitespace - add to display
         const space = document.createTextNode(token);
         display.appendChild(space);
-        for (let i = 0; i < token.length; i++) {
-          charToWordMap[charIndex++] = words.length - 1;
-        }
       } else if (token.length > 0) {
         // Word - create span
         const span = document.createElement('span');
@@ -251,13 +239,27 @@ const StoryReader = (function() {
 
         words.push(token);
         wordElements.push(span);
-
-        // Map each character to this word
-        for (let i = 0; i < token.length; i++) {
-          charToWordMap[charIndex++] = words.length - 1;
-        }
       }
     });
+  }
+
+  /**
+   * Get pause duration after a word based on punctuation
+   * Returns milliseconds to wait before next word
+   */
+  function getPauseAfterWord(word) {
+    const lastChar = word.slice(-1);
+
+    // Longer pause after sentence-ending punctuation
+    if ('.!?'.includes(lastChar)) {
+      return 300 / speechRate;
+    }
+    // Medium pause after commas, semicolons, colons
+    if (',;:'.includes(lastChar)) {
+      return 150 / speechRate;
+    }
+    // Short pause between regular words
+    return 50 / speechRate;
   }
 
   /**
@@ -269,7 +271,6 @@ const StoryReader = (function() {
 
     // Cancel any ongoing speech
     speechSynthesis.cancel();
-    clearWordTiming();
 
     // Prepare display
     prepareStory(text);
@@ -283,11 +284,39 @@ const StoryReader = (function() {
     currentWordIndex = -1;
     isPaused = false;
     isReading = true;
-    boundarySupported = true;
     updatePlayPauseIcon();
 
-    // Create utterance
-    utterance = new SpeechSynthesisUtterance(text);
+    // Start speaking word by word
+    speakNextWord();
+  }
+
+  /**
+   * Speak the next word in the sequence
+   */
+  function speakNextWord() {
+    // Check if we should stop
+    if (!isReading || isPaused) {
+      return;
+    }
+
+    // Move to next word
+    currentWordIndex++;
+
+    // Check if we're done
+    if (currentWordIndex >= words.length) {
+      finishReading();
+      return;
+    }
+
+    // Highlight current word
+    highlightWord(currentWordIndex);
+
+    // Get the word to speak (strip punctuation for cleaner speech)
+    const word = words[currentWordIndex];
+    const cleanWord = word.replace(/[^\w']/g, '') || word;
+
+    // Create utterance for this word
+    const utterance = new SpeechSynthesisUtterance(cleanWord);
     utterance.rate = speechRate;
     utterance.pitch = 1;
     utterance.volume = isMuted ? 0 : 1;
@@ -296,84 +325,64 @@ const StoryReader = (function() {
       utterance.voice = selectedVoice;
     }
 
-    // Word boundary event for highlighting
-    utterance.onboundary = (event) => {
-      if (event.name === 'word') {
-        boundarySupported = true;
-        const wordIndex = getWordIndexFromCharIndex(event.charIndex);
-        if (wordIndex >= 0 && wordIndex < words.length) {
-          highlightWord(wordIndex);
-        }
-      }
-    };
-
-    // Start fallback timing after a brief delay to detect boundary support
-    utterance.onstart = () => {
-      // Give a moment for boundary events to fire
-      setTimeout(() => {
-        if (currentWordIndex === -1 && words.length > 0) {
-          // No boundary events received - use fallback timing
-          boundarySupported = false;
-          startWordTiming();
-        }
-      }, 200);
-    };
-
+    // When word finishes, pause briefly then speak next
     utterance.onend = () => {
-      clearWordTiming();
-      isReading = false;
-      // Keep last word highlighted briefly, then clear
+      if (!isReading || isPaused) return;
+
+      const pauseDuration = getPauseAfterWord(word);
       setTimeout(() => {
-        if (!isReading) {
-          clearHighlight();
-        }
-      }, 500);
+        speakNextWord();
+      }, pauseDuration);
     };
 
     utterance.onerror = (event) => {
-      if (event.error !== 'canceled') {
+      if (event.error !== 'canceled' && event.error !== 'interrupted') {
         console.error('Speech error:', event.error);
       }
-      clearWordTiming();
-      isReading = false;
+      // Try to continue even on error
+      if (isReading && !isPaused) {
+        setTimeout(() => speakNextWord(), 100);
+      }
     };
 
-    // Speak!
+    // Speak the word
     speechSynthesis.speak(utterance);
   }
 
   /**
-   * Get word index from character index
+   * Finish reading - called when all words are done
    */
-  function getWordIndexFromCharIndex(charIndex) {
-    // The charToWordMap directly maps character positions to word indices
-    if (charIndex >= 0 && charIndex < charToWordMap.length) {
-      return charToWordMap[charIndex];
-    }
-    // If beyond mapped range, estimate based on position
-    return Math.min(
-      Math.floor((charIndex / charToWordMap.length) * words.length),
-      words.length - 1
-    );
+  function finishReading() {
+    isReading = false;
+    updatePlayPauseIcon();
+
+    // Keep last word highlighted briefly, then clear
+    setTimeout(() => {
+      if (!isReading) {
+        clearHighlight();
+      }
+    }, 1000);
   }
 
   /**
    * Highlight a specific word
    */
   function highlightWord(index) {
-    if (index === currentWordIndex) return;
-
     // Remove previous highlight
-    if (currentWordIndex >= 0 && currentWordIndex < wordElements.length) {
-      wordElements[currentWordIndex].classList.remove('active');
+    if (currentWordIndex >= 0 && currentWordIndex < wordElements.length &&
+        currentWordIndex !== index) {
+      // Don't remove if it's the same word
     }
+    wordElements.forEach((el, i) => {
+      if (i === index) {
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+      }
+    });
 
-    // Add new highlight
-    currentWordIndex = index;
-    if (index >= 0 && index < wordElements.length) {
-      wordElements[index].classList.add('active');
-      scrollToWord(index);
-    }
+    // Scroll to keep highlighted word visible
+    scrollToWord(index);
   }
 
   /**
@@ -402,71 +411,39 @@ const StoryReader = (function() {
    */
   function clearHighlight() {
     wordElements.forEach(el => el.classList.remove('active'));
-    currentWordIndex = -1;
-  }
-
-  /**
-   * Start word timing fallback for browsers without boundary events
-   */
-  function startWordTiming() {
-    if (words.length === 0) return;
-
-    // Estimate time per word based on speech rate
-    // Average English speech is ~150 words per minute at rate 1.0
-    const wordsPerMinute = 150 * speechRate;
-    const msPerWord = 60000 / wordsPerMinute;
-
-    wordStartTime = Date.now();
-    let estimatedIndex = 0;
-
-    // Highlight first word immediately
-    highlightWord(0);
-
-    wordTimingInterval = setInterval(() => {
-      if (isPaused || !isReading) return;
-
-      const elapsed = Date.now() - wordStartTime;
-      estimatedIndex = Math.floor(elapsed / msPerWord);
-
-      if (estimatedIndex < words.length) {
-        highlightWord(estimatedIndex);
-      } else {
-        clearWordTiming();
-      }
-    }, 50); // Check frequently for smooth updates
-  }
-
-  /**
-   * Clear word timing interval
-   */
-  function clearWordTiming() {
-    if (wordTimingInterval) {
-      clearInterval(wordTimingInterval);
-      wordTimingInterval = null;
-    }
   }
 
   /**
    * Toggle play/pause
    */
   function togglePlayPause() {
+    if (!isReading && currentWordIndex >= words.length - 1) {
+      // Finished - restart from beginning
+      currentWordIndex = -1;
+      isReading = true;
+      isPaused = false;
+      updatePlayPauseIcon();
+      speakNextWord();
+      return;
+    }
+
     if (!isReading) {
-      // Restart from beginning
+      // Start fresh
       startReading();
       return;
     }
 
     if (isPaused) {
-      // Resume
-      speechSynthesis.resume();
+      // Resume - continue from current word
       isPaused = false;
+      updatePlayPauseIcon();
+      speakNextWord();
     } else {
       // Pause
-      speechSynthesis.pause();
+      speechSynthesis.cancel();
       isPaused = true;
+      updatePlayPauseIcon();
     }
-
-    updatePlayPauseIcon();
   }
 
   /**
@@ -487,9 +464,9 @@ const StoryReader = (function() {
    */
   function stopReading() {
     speechSynthesis.cancel();
-    clearWordTiming();
     isReading = false;
     isPaused = false;
+    currentWordIndex = -1;
 
     // Switch back to input mode
     displayPanel.classList.add('hidden');
@@ -508,11 +485,6 @@ const StoryReader = (function() {
     // Update AudioManager if available
     if (window.AudioManager) {
       AudioManager.setMuted(isMuted);
-    }
-
-    // Update current utterance volume if playing
-    if (utterance && isReading) {
-      // Can't change volume mid-utterance, so we just track state
     }
 
     updateMuteUI();
