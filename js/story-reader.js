@@ -76,8 +76,25 @@ const StoryReader = (function() {
     }
   }
 
-  // Store deduplicated voices for lookup
+  // Store available voices for lookup
   let availableVoices = [];
+
+  /**
+   * Check if a voice is a premium/enhanced quality voice
+   */
+  function isPremiumVoice(voice) {
+    return voice.name.includes('Premium') || voice.name.includes('Enhanced');
+  }
+
+  /**
+   * Get display name for a voice (strip quality tags)
+   */
+  function getVoiceDisplayName(voice) {
+    return voice.name
+      .replace(/\s*\(Enhanced\)\s*/i, '')
+      .replace(/\s*\(Premium\)\s*/i, '')
+      .trim();
+  }
 
   /**
    * Setup available voices
@@ -92,32 +109,23 @@ const StoryReader = (function() {
         v.lang.startsWith('en')
       );
 
-      // Deduplicate: prefer Enhanced versions, keep only one per base name
-      const voiceMap = new Map();
-      englishVoices.forEach(voice => {
-        const baseName = voice.name.replace(/\s*\(Enhanced\)\s*/i, '').trim();
-        const existing = voiceMap.get(baseName);
+      // Only show Premium/Enhanced voices (the good ones!)
+      // Fall back to all English voices if none are downloaded
+      let filteredVoices = englishVoices.filter(isPremiumVoice);
 
-        // Keep this voice if no existing, or if this one is Enhanced
-        if (!existing || voice.name.includes('Enhanced')) {
-          voiceMap.set(baseName, voice);
-        }
-      });
+      if (filteredVoices.length === 0) {
+        // No premium voices found - show all (but this shouldn't happen on Ava's iPad)
+        filteredVoices = englishVoices;
+      }
 
-      // Convert to array and sort
-      availableVoices = Array.from(voiceMap.values());
-
-      // Sort: prioritize Samantha (friendly), then other en-US, then en-GB
-      availableVoices.sort((a, b) => {
-        if (a.name.includes('Samantha')) return -1;
-        if (b.name.includes('Samantha')) return 1;
+      // Sort alphabetically by display name, with en-US first
+      availableVoices = filteredVoices.sort((a, b) => {
+        // en-US voices first
         if (a.lang === 'en-US' && b.lang !== 'en-US') return -1;
         if (b.lang === 'en-US' && a.lang !== 'en-US') return 1;
 
-        // Sort by base name
-        const nameA = a.name.replace(/\s*\(Enhanced\)\s*/i, '').trim();
-        const nameB = b.name.replace(/\s*\(Enhanced\)\s*/i, '').trim();
-        return nameA.localeCompare(nameB);
+        // Then alphabetically
+        return getVoiceDisplayName(a).localeCompare(getVoiceDisplayName(b));
       });
 
       // Clear and repopulate select using DOM methods
@@ -128,9 +136,7 @@ const StoryReader = (function() {
       availableVoices.forEach((voice, index) => {
         const option = document.createElement('option');
         option.value = index;
-        // Show base name, add star if Enhanced
-        const baseName = voice.name.replace(/\s*\(Enhanced\)\s*/i, '').trim();
-        option.textContent = baseName + (voice.name.includes('Enhanced') ? ' ★' : '');
+        option.textContent = getVoiceDisplayName(voice);
         option.dataset.voiceName = voice.name;
         voiceSelect.appendChild(option);
       });
