@@ -1,9 +1,10 @@
-const CACHE_NAME = 'avagames-v11';
+const CACHE_NAME = 'avagames-v12';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/math.html',
   '/spelling.html',
+  '/story-reader.html',
   '/game.html',
   '/css/styles.css',
   '/css/hub.css',
@@ -12,9 +13,11 @@ const ASSETS_TO_CACHE = [
   '/css/breakfast-helper.css',
   '/css/santa-delivery.css',
   '/css/cobbler-game.css',
+  '/css/story-reader.css',
   '/js/hub.js',
   '/js/math-app.js',
   '/js/spelling-app.js',
+  '/js/story-reader.js',
   '/js/math-engine.js',
   '/js/spelling-engine.js',
   '/js/audio-manager.js',

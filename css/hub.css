@@ -34,15 +34,18 @@
 /* Subject Cards */
 .subject-cards {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-lg);
   width: 100%;
   max-width: 500px;
   margin-bottom: var(--space-xl);
   animation: slideInUp 0.5s ease-out 0.3s both;
+  justify-content: center;
 }
 
 .subject-card {
-  flex: 1;
+  flex: 1 1 140px;
+  max-width: 200px;
   border-radius: var(--radius-lg);
   padding: var(--space-xl) var(--space-lg);
   display: flex;
@@ -67,6 +70,10 @@
 
 .subject-card.spelling {
   background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+}
+
+.subject-card.stories {
+  background: linear-gradient(135deg, #fd79a8 0%, #f78fb3 100%);
 }
 
 .subject-card-icon {

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Ava's Games">
+  <meta name="theme-color" content="#fd79a8">
+  <title>Story Reader - Ava's Learning Games</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/subject-page.css">
+  <link rel="stylesheet" href="css/story-reader.css">
+</head>
+<body>
+  <div class="subject-page story-reader-page" id="story-reader-page">
+    <a class="subject-back-btn" href="index.html" aria-label="Back to hub">&larr;</a>
+
+    <h1 class="subject-title stories">Story Reader</h1>
+    <p class="subject-subtitle">Type a story and hear it read aloud!</p>
+
+    <!-- Input Panel -->
+    <div class="story-input-panel" id="story-input-panel">
+      <label class="subject-settings-label">Your story</label>
+      <textarea
+        class="story-textarea"
+        id="story-textarea"
+        placeholder="Type or paste your story here..."
+        rows="6"
+      ></textarea>
+      <button class="story-read-btn" id="story-read-btn" disabled>
+        <span class="story-read-btn-icon">&#x1F4D6;</span>
+        Read My Story
+      </button>
+    </div>
+
+    <!-- Reader Display Panel (hidden until reading) -->
+    <div class="story-display-panel hidden" id="story-display-panel">
+      <div class="story-display" id="story-display">
+        <!-- Words will be inserted here as spans -->
+      </div>
+    </div>
+
+    <!-- Playback Controls (hidden until reading) -->
+    <div class="story-controls hidden" id="story-controls">
+      <div class="story-controls-row">
+        <button class="story-control-btn" id="story-play-pause-btn" aria-label="Play/Pause">
+          <span id="play-pause-icon">&#x25B6;&#xFE0F;</span>
+        </button>
+        <button class="story-control-btn" id="story-stop-btn" aria-label="Stop">
+          &#x23F9;&#xFE0F;
+        </button>
+      </div>
+
+      <div class="story-settings">
+        <div class="story-setting">
+          <label class="story-setting-label" for="voice-select">Voice</label>
+          <select class="story-select" id="voice-select">
+            <option value="">Loading voices...</option>
+          </select>
+        </div>
+
+        <div class="story-setting">
+          <label class="story-setting-label" for="speed-slider">Speed</label>
+          <div class="story-slider-container">
+            <input
+              type="range"
+              class="story-slider"
+              id="speed-slider"
+              min="0.5"
+              max="1.5"
+              step="0.1"
+              value="0.9"
+            >
+            <span class="story-slider-value" id="speed-value">0.9x</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="audio-toggle" id="audio-toggle" aria-label="Toggle audio">
+      <span id="audio-icon">&#x1f50a;</span>
+    </button>
+  </div>
+
+  <script src="js/audio-manager.js"></script>
+  <script src="js/story-reader.js"></script>
+</body>
+</html>
