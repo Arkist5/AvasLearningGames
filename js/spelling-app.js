@@ -9,7 +9,7 @@
     { id: 'letter-rain', name: 'Letter Rain', icon: '\uD83C\uDF27\uFE0F', playable: false },
     { id: 'spell-garden', name: 'Spell Garden', icon: '\uD83C\uDF3B', playable: false },
     { id: 'word-rescue', name: 'Word Rescue', icon: '\uD83D\uDE80', playable: false },
-    { id: 'bee-speller', name: 'Bee Speller', icon: '\uD83D\uDC1D', playable: false },
+    { id: 'special-delivery', name: 'Special Delivery', icon: '\uD83C\uDF85', playable: false },
     { id: 'letter-chef', name: 'Letter Chef', icon: '\uD83D\uDC68\u200D\uD83C\uDF73', playable: false },
     { id: 'word-train', name: 'Word Train', icon: '\uD83D\uDE82', playable: false },
     { id: 'spell-castle', name: 'Spell Castle', icon: '\uD83C\uDFF0', playable: false },
