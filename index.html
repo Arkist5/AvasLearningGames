@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Math Fun">
+  <meta name="theme-color" content="#6c5ce7">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <title>Ava's Math Games</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/homepage.css">
+</head>
+<body>
+  <div class="homepage" id="homepage">
+    <h1 class="homepage-title">Ava's Math Games</h1>
+    <p class="homepage-subtitle">Pick a game and let's practice!</p>
+
+    <div class="settings-panel">
+      <label class="settings-label">How do you want to answer?</label>
+      <div class="mode-toggle" id="mode-toggle">
+        <button class="mode-btn active" data-mode="type">Type Answer</button>
+        <button class="mode-btn" data-mode="choice">Pick Answer</button>
+      </div>
+
+      <label class="settings-label">How many questions?</label>
+      <div class="count-buttons" id="count-buttons">
+        <button class="count-btn active" data-count="10">10</button>
+        <button class="count-btn" data-count="20">20</button>
+        <button class="count-btn" data-count="30">30</button>
+        <button class="count-btn" data-count="40">40</button>
+        <button class="count-btn" data-count="50">50</button>
+      </div>
+    </div>
+
+    <div class="game-grid" id="game-grid">
+      <!-- Games populated by JS -->
+    </div>
+
+    <button class="audio-toggle" id="audio-toggle" aria-label="Toggle audio">
+      <span id="audio-icon">&#x1f50a;</span>
+    </button>
+  </div>
+
+  <script src="js/audio-manager.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</body>
+</html>

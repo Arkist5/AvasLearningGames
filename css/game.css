@@ -1,0 +1,604 @@
+/* Game UI Styles - HUD, Number Pad, Multiple Choice, Game Scene */
+
+/* Game page layout - portrait: column, landscape: grid */
+.game-page {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+@media (orientation: landscape) {
+  .game-page {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "hud hud"
+      "scene input";
+  }
+
+  #game-hud-container { grid-area: hud; }
+  .game-scene { grid-area: scene; }
+  #game-input-container { grid-area: input; }
+}
+
+@media (min-width: 768px) and (orientation: landscape) {
+  .game-page {
+    grid-template-columns: 1fr 360px;
+  }
+}
+
+/* HUD bar - full width, contains back button + lives + progress */
+#game-hud-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  z-index: 50;
+  min-height: 48px;
+}
+
+/* Back button */
+.back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: #f1f3f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+
+/* HUD content (lives + progress) */
+.game-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+}
+
+.hud-lives {
+  display: flex;
+  gap: 4px;
+}
+
+.heart {
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.heart.full {
+  color: #e74c3c;
+}
+
+.heart.empty {
+  color: #ddd;
+}
+
+.hud-progress {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--color-text);
+  background: #f1f3f5;
+  padding: 4px 14px;
+  border-radius: var(--radius-sm);
+}
+
+/* Game scene area */
+.game-scene {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Input area */
+.game-input-area {
+  background: white;
+  padding: var(--space-md);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  z-index: 50;
+  position: relative;
+}
+
+/* Question display */
+.question-display {
+  text-align: center;
+  margin-bottom: var(--space-md);
+}
+
+.question-text {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--color-text);
+}
+
+.answer-slot {
+  display: inline-block;
+  min-width: 50px;
+  padding: 2px 8px;
+  border-bottom: 3px solid var(--color-primary);
+  color: var(--color-text-light);
+  transition: all 0.2s;
+}
+
+.answer-slot.has-value {
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
+/* Number Pad */
+.number-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.pad-btn {
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: #f1f3f5;
+  color: var(--color-text);
+  transition: all 0.15s ease;
+  min-height: 56px;
+}
+
+.pad-btn:active {
+  background: #dfe6e9;
+  transform: scale(0.95);
+}
+
+.pad-btn-back {
+  background: #ffeaa7;
+  color: #d35400;
+}
+
+.pad-btn-submit {
+  background: var(--color-success);
+  color: white;
+  font-size: 1.8rem;
+}
+
+.pad-btn-submit:active {
+  background: #00a383;
+}
+
+/* Multiple Choice */
+.choice-container {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.choice-btn {
+  flex: 1;
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: var(--color-primary-light);
+  color: white;
+  transition: all 0.15s ease;
+  min-height: 70px;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.2);
+}
+
+.choice-btn:active {
+  transform: scale(0.95);
+  background: var(--color-primary);
+}
+
+/* Feedback Overlay */
+.feedback-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  font-weight: 800;
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 60;
+}
+
+.feedback-overlay.show {
+  opacity: 1;
+}
+
+.feedback-overlay.correct {
+  background: rgba(0, 184, 148, 0.15);
+  color: var(--color-success);
+}
+
+.feedback-overlay.wrong {
+  background: rgba(225, 112, 85, 0.15);
+  color: var(--color-danger);
+  animation: shake 0.5s ease;
+}
+
+/* Checkpoint Celebration */
+.checkpoint-celebration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 70;
+  animation: popIn 0.5s ease-out;
+}
+
+.checkpoint-text {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  color: var(--color-primary);
+  animation: celebration 0.8s ease;
+}
+
+.checkpoint-stars {
+  font-size: 2rem;
+  margin-top: var(--space-sm);
+  animation: bounce 0.6s ease infinite;
+}
+
+/* Checkpoint Restart */
+.checkpoint-restart {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 70;
+  animation: popIn 0.4s ease-out;
+}
+
+.restart-text {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--color-danger);
+}
+
+.restart-subtext {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  margin-top: var(--space-sm);
+}
+
+/* Victory Screen */
+.victory-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #e8f4fd 0%, #fef3f0 100%);
+  z-index: 200;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.victory-title {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  color: var(--color-primary);
+  animation: celebration 1s ease;
+  margin-bottom: var(--space-md);
+}
+
+.victory-stats {
+  font-size: 1.2rem;
+  color: var(--color-text-light);
+  margin-bottom: var(--space-xl);
+}
+
+.victory-animals {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+  animation: bounce 1s ease infinite;
+}
+
+.victory-btn {
+  padding: var(--space-md) var(--space-xxl);
+  border-radius: var(--radius-lg);
+  font-size: 1.2rem;
+  font-weight: 800;
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
+}
+
+/* ─── Animal Crossing Game Scene ─── */
+
+.ac-scene {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #87ceeb; /* sky */
+}
+
+/* Sky and clouds */
+.ac-sky {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(180deg, #87ceeb 0%, #b3e0f2 100%);
+}
+
+/* Safe zone (right side - park/grass) */
+.ac-safe-zone {
+  position: absolute;
+  right: 0;
+  top: 30%;
+  bottom: 0;
+  width: 18%;
+  background: linear-gradient(180deg, #55efc4 0%, #00b894 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: var(--space-md);
+  z-index: 10;
+}
+
+.ac-safe-zone::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: #2ecc71;
+  border-radius: 50%;
+}
+
+/* Waiting zone (left side) */
+.ac-waiting-zone {
+  position: absolute;
+  left: 0;
+  top: 30%;
+  bottom: 0;
+  width: 18%;
+  background: linear-gradient(180deg, #dfe6e9 0%, #b2bec3 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: var(--space-md);
+  z-index: 10;
+}
+
+/* Road */
+.ac-road {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 30%;
+  bottom: 0;
+  background: #636e72;
+}
+
+/* Road lanes */
+.ac-road::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent calc(50% - 2px),
+    #fdcb6e calc(50% - 2px),
+    #fdcb6e calc(50% + 2px),
+    transparent calc(50% + 2px)
+  );
+}
+
+/* Crosswalk */
+.ac-crosswalk {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  background: repeating-linear-gradient(
+    180deg,
+    white 0px,
+    white 12px,
+    transparent 12px,
+    transparent 24px
+  );
+  opacity: 0.8;
+}
+
+/* Traffic light */
+.ac-traffic-light {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 60px;
+  background: #2d3436;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  padding: 4px;
+  z-index: 20;
+}
+
+.traffic-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #636e72;
+  transition: all 0.3s;
+}
+
+.traffic-dot.red.active { background: #e74c3c; box-shadow: 0 0 8px #e74c3c; }
+.traffic-dot.yellow.active { background: #f1c40f; box-shadow: 0 0 8px #f1c40f; }
+.traffic-dot.green.active { background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
+
+/* Animals */
+.ac-animal {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  transition: left 1.2s ease-in-out, transform 0.3s;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+}
+
+.ac-animal.walking {
+  animation: animalWalk 0.4s ease infinite;
+}
+
+.ac-animal.flinch {
+  animation: shake 0.5s ease;
+}
+
+.ac-animal.celebrating {
+  animation: celebration 0.6s ease;
+}
+
+@keyframes animalWalk {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Cars */
+.ac-car {
+  position: absolute;
+  width: 70px;
+  height: 35px;
+  z-index: 15;
+  transition: none;
+}
+
+.ac-car.driving {
+  transition: left 2s linear;
+}
+
+/* Saved animals on safe side */
+.ac-saved-animals {
+  position: absolute;
+  right: 0;
+  bottom: 5%;
+  width: 18%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  padding: 0 4px;
+  z-index: 12;
+}
+
+.ac-saved-animal {
+  font-size: 1.5rem;
+  animation: popIn 0.4s ease-out;
+}
+
+/* Clouds */
+.ac-cloud {
+  position: absolute;
+  background: white;
+  border-radius: 50px;
+  opacity: 0.8;
+  z-index: 5;
+}
+
+@keyframes cloudDrift {
+  from { transform: translateX(-100px); }
+  to { transform: translateX(calc(100vw + 100px)); }
+}
+
+/* Landscape game layout adjustments */
+@media (orientation: landscape) {
+  .game-input-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .number-pad {
+    max-width: 280px;
+  }
+
+  .choice-container {
+    flex-direction: column;
+    max-width: 280px;
+  }
+
+  .question-text {
+    font-size: 1.6rem;
+  }
+}
+
+/* iPad landscape */
+@media (min-width: 768px) and (orientation: landscape) {
+  .pad-btn {
+    min-height: 60px;
+    font-size: 1.6rem;
+  }
+
+  .choice-btn {
+    min-height: 65px;
+    font-size: 2rem;
+  }
+}
+
+/* Portrait adjustments for shorter screens */
+@media (orientation: portrait) and (max-height: 700px) {
+  .pad-btn {
+    padding: var(--space-sm);
+    min-height: 44px;
+    font-size: 1.3rem;
+  }
+
+  .question-text {
+    font-size: 1.5rem;
+  }
+}

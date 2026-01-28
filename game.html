@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Math Fun">
+  <meta name="theme-color" content="#6c5ce7">
+  <title>Math Game</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+  <div class="game-page" id="game-page">
+    <!-- HUD bar: back button + lives/progress inserted by game-base.js -->
+    <div id="game-hud-container">
+      <button class="back-btn" id="back-btn" aria-label="Back to home">&larr;</button>
+    </div>
+
+    <!-- Game scene (populated by game JS) -->
+    <div class="game-scene" id="game-scene"></div>
+
+    <!-- Input area inserted by game-base.js -->
+    <div id="game-input-container"></div>
+  </div>
+
+  <script src="js/math-engine.js"></script>
+  <script src="js/audio-manager.js"></script>
+  <script src="js/game-base.js"></script>
+  <script src="js/games/animal-crossing.js"></script>
+  <script>
+    // Parse URL params and launch the right game
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var gameId = params.get('game') || 'animal-crossing';
+      var mode = params.get('mode') || 'type';
+      var count = parseInt(params.get('count'), 10) || 10;
+
+      // Audio unlock on first touch
+      var unlockHandler = function() {
+        AudioManager.unlock();
+        document.removeEventListener('touchstart', unlockHandler);
+        document.removeEventListener('click', unlockHandler);
+      };
+      document.addEventListener('touchstart', unlockHandler, { once: true });
+      document.addEventListener('click', unlockHandler, { once: true });
+
+      // Back button
+      document.getElementById('back-btn').addEventListener('click', function() {
+        window.location.href = 'index.html';
+      });
+
+      // Launch game
+      if (gameId === 'animal-crossing') {
+        AnimalCrossing.start({ mode: mode, questionCount: count });
+      }
+    })();
+  </script>
+</body>
+</html>

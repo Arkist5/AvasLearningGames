@@ -1,0 +1,15 @@
+# OS files
+.DS_Store
+
+# Claude Code local settings (may contain API keys in permissions)
+.claude/
+
+# Playwright testing screenshots
+.playwright-mcp/
+
+# Node
+node_modules/
+
+# Environment / secrets
+.env
+*.env
