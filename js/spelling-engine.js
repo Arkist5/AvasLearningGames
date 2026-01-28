@@ -7,26 +7,21 @@ const SpellingEngine = (() => {
 
   // Default word list if localStorage is empty
   const DEFAULT_WORDS = [
-    { word: 'cat', emoji: '🐱' },
-    { word: 'dog', emoji: '🐶' },
-    { word: 'sun', emoji: '☀️' },
-    { word: 'hat', emoji: '🎩' },
-    { word: 'bed', emoji: '🛏️' },
-    { word: 'cup', emoji: '☕' },
-    { word: 'fish', emoji: '🐟' },
+    { word: 'wash', emoji: '🧼' },
+    { word: 'wasp', emoji: '🐝' },
+    { word: 'watch', emoji: '⌚' },
+    { word: 'want', emoji: '🙏' },
+    { word: 'water', emoji: '💧' },
+    { word: 'swamp', emoji: '🐊' },
+    { word: 'swan', emoji: '🦢' },
+    { word: 'car', emoji: '🚗' },
     { word: 'star', emoji: '⭐' },
-    { word: 'tree', emoji: '🌳' },
-    { word: 'cake', emoji: '🎂' },
-    { word: 'moon', emoji: '🌙' },
-    { word: 'book', emoji: '📖' },
-    { word: 'ball', emoji: '⚽' },
-    { word: 'frog', emoji: '🐸' },
-    { word: 'rain', emoji: '🌧️' },
-    { word: 'bear', emoji: '🐻' },
-    { word: 'bird', emoji: '🐦' },
-    { word: 'hand', emoji: '✋' },
-    { word: 'ring', emoji: '💍' },
-    { word: 'snow', emoji: '❄️' },
+    { word: 'park', emoji: '🌳' },
+    { word: 'garden', emoji: '🌻' },
+    { word: 'farmer', emoji: '👨‍🌾' },
+    { word: 'marble', emoji: '🔮' },
+    { word: "i'm", emoji: '🙋' },
+    { word: 'where', emoji: '🗺️' },
   ];
 
   // Emoji lookup for user-provided words (best-effort)
@@ -51,6 +46,9 @@ const SpellingEngine = (() => {
     rose: '🌹', tulip: '🌷', cactus: '🌵', mushroom: '🍄', shell: '🐚',
     lamp: '💡', clock: '🕐', phone: '📱', camera: '📷', map: '🗺️',
     flag: '🏁', gift: '🎁', balloon: '🎈', party: '🎉', magic: '✨',
+    wash: '🧼', wasp: '🐝', watch: '⌚', want: '🙏', swamp: '🐊',
+    swan: '🦢', park: '🌳', garden: '🌻', farmer: '👨‍🌾', marble: '🔮',
+    "i'm": '🙋', where: '🗺️',
   };
 
   /**
@@ -244,7 +242,7 @@ const SpellingEngine = (() => {
 
     var position = session.letterProgress.length;
     var expectedLetter = question.word[position];
-    var correct = letter.toLowerCase() === expectedLetter;
+    var correct = letter.toLowerCase() === expectedLetter.toLowerCase();
 
     var result = {
       correct: correct,
