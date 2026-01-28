@@ -112,3 +112,9 @@ audio/
 - `generateDistractors()` adds 1-2 extra letters for scrambled tile mode
 - `submitAnswer()` for full-word comparison, `advanceQuestion()` for timer expiry
 - Emoji lookup map for ~100 common kids' words
+
+### Current Default Spelling Words
+
+These are Ava's current spelling words (updated weekly). They live in `DEFAULT_WORDS` in `spelling-engine.js` and are used when no custom words are entered on the spelling page. When Ava gets a new word list, update `DEFAULT_WORDS` and the `WORD_EMOJI_MAP` entries.
+
+**Current list:** wash, wasp, watch, want, water, swamp, swan, car, star, park, garden, farmer, marble, I'm, where
