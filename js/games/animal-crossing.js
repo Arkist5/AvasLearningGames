@@ -30,7 +30,7 @@ const AnimalCrossing = (() => {
   }
 
   function start(options = {}) {
-    const { mode = 'type', questionCount = 10 } = options;
+    const { mode = 'type', questionCount = 10, engine } = options;
 
     sceneEl = document.getElementById('game-scene');
     const hudContainer = document.getElementById('game-hud-container');
@@ -45,8 +45,9 @@ const AnimalCrossing = (() => {
     // Start background cars
     startBackgroundCars();
 
-    // Init game base (math engine + UI)
+    // Init game base (engine + UI)
     GameBase.init({ hudContainer, inputContainer }, {
+      engine,
       questionCount,
       mode,
       onCorrect: handleCorrect,
@@ -273,7 +274,8 @@ const AnimalCrossing = (() => {
     homeBtn.style.background = 'var(--color-secondary)';
     homeBtn.style.marginTop = 'var(--space-md)';
     homeBtn.addEventListener('click', () => {
-      window.location.href = 'index.html';
+      var subject = new URLSearchParams(window.location.search).get('subject') || 'math';
+      window.location.href = subject === 'spelling' ? 'spelling.html' : 'math.html';
     });
     victory.appendChild(homeBtn);
 

@@ -1,13 +1,18 @@
-const CACHE_NAME = 'mathfun-v4';
+const CACHE_NAME = 'avagames-v5';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
+  '/math.html',
+  '/spelling.html',
   '/game.html',
   '/css/styles.css',
-  '/css/homepage.css',
+  '/css/hub.css',
+  '/css/subject-page.css',
   '/css/game.css',
   '/css/breakfast-helper.css',
-  '/js/app.js',
+  '/js/hub.js',
+  '/js/math-app.js',
+  '/js/spelling-app.js',
   '/js/math-engine.js',
   '/js/audio-manager.js',
   '/js/game-base.js',

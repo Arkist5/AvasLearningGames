@@ -40,7 +40,7 @@ const BreakfastHelper = (() => {
   }
 
   function start(options = {}) {
-    const { mode = 'type', questionCount = 10 } = options;
+    const { mode = 'type', questionCount = 10, engine } = options;
 
     sceneEl = document.getElementById('game-scene');
     const hudContainer = document.getElementById('game-hud-container');
@@ -59,6 +59,7 @@ const BreakfastHelper = (() => {
 
     // Init game base with timer options
     GameBase.init({ hudContainer, inputContainer }, {
+      engine,
       questionCount,
       mode,
       showLives: false,
@@ -313,7 +314,10 @@ const BreakfastHelper = (() => {
 
     // Home button
     const homeBtn = el('button', 'bh-end-btn secondary', 'Home');
-    homeBtn.addEventListener('click', () => { window.location.href = 'index.html'; });
+    homeBtn.addEventListener('click', () => {
+      var subject = new URLSearchParams(window.location.search).get('subject') || 'math';
+      window.location.href = subject === 'spelling' ? 'spelling.html' : 'math.html';
+    });
     screen.appendChild(homeBtn);
 
     document.body.appendChild(screen);
@@ -343,7 +347,10 @@ const BreakfastHelper = (() => {
 
     // Home button
     const homeBtn = el('button', 'bh-end-btn secondary', 'Home');
-    homeBtn.addEventListener('click', () => { window.location.href = 'index.html'; });
+    homeBtn.addEventListener('click', () => {
+      var subject = new URLSearchParams(window.location.search).get('subject') || 'math';
+      window.location.href = subject === 'spelling' ? 'spelling.html' : 'math.html';
+    });
     screen.appendChild(homeBtn);
 
     document.body.appendChild(screen);

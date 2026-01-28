@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Math Fun">
+  <meta name="apple-mobile-web-app-title" content="Ava's Games">
   <meta name="theme-color" content="#6c5ce7">
-  <title>Math Game</title>
+  <title>Game - Ava's Learning Games</title>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/game.css">
   <link rel="stylesheet" href="css/breakfast-helper.css">
@@ -16,7 +16,7 @@
   <div class="game-page" id="game-page">
     <!-- HUD bar: back button + lives/progress inserted by game-base.js -->
     <div id="game-hud-container">
-      <button class="back-btn" id="back-btn" aria-label="Back to home">&larr;</button>
+      <button class="back-btn" id="back-btn" aria-label="Back to games">&larr;</button>
     </div>
 
     <!-- Game scene (populated by game JS) -->
@@ -38,6 +38,13 @@
       var gameId = params.get('game') || 'animal-crossing';
       var mode = params.get('mode') || 'type';
       var count = parseInt(params.get('count'), 10) || 10;
+      var subject = params.get('subject') || 'math';
+
+      // Select engine based on subject
+      var gameEngine = MathEngine; // default
+      if (subject === 'spelling' && typeof SpellingEngine !== 'undefined') {
+        gameEngine = SpellingEngine;
+      }
 
       // Audio unlock on first touch
       var unlockHandler = function() {
@@ -48,16 +55,18 @@
       document.addEventListener('touchstart', unlockHandler, { once: true });
       document.addEventListener('click', unlockHandler, { once: true });
 
-      // Back button
+      // Back button - navigate to subject page
       document.getElementById('back-btn').addEventListener('click', function() {
-        window.location.href = 'index.html';
+        window.location.href = subject === 'spelling' ? 'spelling.html' : 'math.html';
       });
 
-      // Launch game
+      // Launch game with engine
+      var gameOptions = { mode: mode, questionCount: count, engine: gameEngine };
+
       if (gameId === 'animal-crossing') {
-        AnimalCrossing.start({ mode: mode, questionCount: count });
+        AnimalCrossing.start(gameOptions);
       } else if (gameId === 'breakfast-helper') {
-        BreakfastHelper.start({ mode: mode, questionCount: count });
+        BreakfastHelper.start(gameOptions);
       }
     })();
   </script>

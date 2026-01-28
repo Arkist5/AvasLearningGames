@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Ava's Games">
+  <meta name="theme-color" content="#6c5ce7">
+  <title>Spelling Games - Ava's Learning Games</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/subject-page.css">
+</head>
+<body>
+  <div class="subject-page" id="spelling-page">
+    <a class="subject-back-btn" href="index.html" aria-label="Back to hub">&larr;</a>
+
+    <h1 class="subject-title spelling">Spelling Games</h1>
+    <p class="subject-subtitle">Pick a game and let's spell!</p>
+
+    <div class="subject-settings">
+      <label class="subject-settings-label">How hard?</label>
+      <div class="subject-toggle" id="spelling-difficulty-toggle">
+        <button class="subject-toggle-btn spelling active" data-difficulty="easy">Easy</button>
+        <button class="subject-toggle-btn spelling" data-difficulty="medium">Medium</button>
+        <button class="subject-toggle-btn spelling" data-difficulty="hard">Hard</button>
+      </div>
+
+      <label class="subject-settings-label" style="margin-top: var(--space-lg)">Words to practice</label>
+      <textarea class="spelling-word-input" id="spelling-word-input" placeholder="Type or paste words here, one per line..." rows="4"></textarea>
+      <div class="spelling-word-count" id="spelling-word-count">0 words</div>
+    </div>
+
+    <div class="subject-game-grid" id="spelling-game-grid">
+      <!-- Games populated by JS -->
+    </div>
+
+    <button class="audio-toggle" id="audio-toggle" aria-label="Toggle audio">
+      <span id="audio-icon">&#x1f50a;</span>
+    </button>
+  </div>
+
+  <script src="js/audio-manager.js"></script>
+  <script src="js/spelling-app.js"></script>
+</body>
+</html>

@@ -4,6 +4,7 @@
  */
 
 const GameBase = (() => {
+  let engine = null; // game engine (MathEngine, SpellingEngine, etc.)
   let session = null;
   let gameCallbacks = {};
   let gameOptions = {};
@@ -41,6 +42,7 @@ const GameBase = (() => {
     }
 
     const {
+      engine: gameEngine = MathEngine,
       questionCount = 10,
       mode = 'type',
       showLives = true,
@@ -57,12 +59,14 @@ const GameBase = (() => {
       onTimerTick = null,
     } = options;
 
+    engine = gameEngine;
+
     inputMode = mode;
     gameCallbacks = { onCorrect, onWrong, onCheckpoint, onCheckpointRestart, onComplete, onQuestionShow, onTimeout, onTimerTick };
     gameOptions = { showLives, wrongLosesLife, useCheckpoints, timerDuration };
 
     // Create math session with flags
-    session = MathEngine.createSession({
+    session = engine.createSession({
       questionCount,
       useCheckpoints,
       wrongLosesLife,
@@ -113,7 +117,7 @@ const GameBase = (() => {
 
   function updateHUD() {
     if (!session) return;
-    const progress = MathEngine.getProgress(session);
+    const progress = engine.getProgress(session);
 
     // Lives as hearts (skip if showLives is false)
     elements.lives.textContent = '';
@@ -184,8 +188,8 @@ const GameBase = (() => {
     stopTimer();
     inputLocked = true;
 
-    const question = MathEngine.getCurrentQuestion(session);
-    const isComplete = MathEngine.advanceQuestion(session);
+    const question = engine.getCurrentQuestion(session);
+    const isComplete = engine.advanceQuestion(session);
 
     if (gameCallbacks.onTimeout) {
       gameCallbacks.onTimeout(question, question ? question.answer : 0, isComplete);
@@ -206,7 +210,7 @@ const GameBase = (() => {
   // --- End timer system ---
 
   function showCurrentQuestion() {
-    const question = MathEngine.getCurrentQuestion(session);
+    const question = engine.getCurrentQuestion(session);
     if (!question) return;
 
     inputLocked = false;
@@ -307,7 +311,7 @@ const GameBase = (() => {
   }
 
   function buildMultipleChoice(question) {
-    const choices = MathEngine.generateChoices(question.answer);
+    const choices = engine.generateChoices(question.answer);
     const choiceContainer = el('div', 'choice-container');
 
     choices.forEach((choice) => {
@@ -331,7 +335,7 @@ const GameBase = (() => {
 
   function processAnswer(answer) {
     inputLocked = true;
-    const result = MathEngine.submitAnswer(session, answer);
+    const result = engine.submitAnswer(session, answer);
     if (!result) return;
 
     if (result.correct) {
@@ -447,6 +451,7 @@ const GameBase = (() => {
 
   function destroy() {
     stopTimer();
+    engine = null;
     session = null;
     gameCallbacks = {};
     gameOptions = {};

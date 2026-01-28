@@ -5,38 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Math Fun">
+  <meta name="apple-mobile-web-app-title" content="Ava's Games">
   <meta name="theme-color" content="#6c5ce7">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="assets/icon-192.png">
-  <title>Ava's Math Games</title>
+  <title>Ava's Learning Games</title>
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/homepage.css">
+  <link rel="stylesheet" href="css/hub.css">
 </head>
 <body>
-  <div class="homepage" id="homepage">
-    <h1 class="homepage-title">Ava's Math Games</h1>
-    <p class="homepage-subtitle">Pick a game and let's practice!</p>
+  <div class="hub-page" id="hub-page">
+    <h1 class="hub-title">Ava's Learning Games</h1>
+    <p class="hub-subtitle">What do you want to practice?</p>
 
-    <div class="settings-panel">
-      <label class="settings-label">How do you want to answer?</label>
-      <div class="mode-toggle" id="mode-toggle">
-        <button class="mode-btn active" data-mode="type">Type Answer</button>
-        <button class="mode-btn" data-mode="choice">Pick Answer</button>
-      </div>
-
-      <label class="settings-label">How many questions?</label>
-      <div class="count-buttons" id="count-buttons">
-        <button class="count-btn active" data-count="10">10</button>
-        <button class="count-btn" data-count="20">20</button>
-        <button class="count-btn" data-count="30">30</button>
-        <button class="count-btn" data-count="40">40</button>
-        <button class="count-btn" data-count="50">50</button>
-      </div>
-    </div>
-
-    <div class="game-grid" id="game-grid">
-      <!-- Games populated by JS -->
+    <div class="subject-cards">
+      <a class="subject-card math" href="math.html">
+        <div class="subject-card-icon">&#x2795;</div>
+        <div class="subject-card-name">Math</div>
+      </a>
+      <a class="subject-card spelling" href="spelling.html">
+        <div class="subject-card-icon">&#x1F524;</div>
+        <div class="subject-card-name">Spelling</div>
+      </a>
     </div>
 
     <button class="audio-toggle" id="audio-toggle" aria-label="Toggle audio">
@@ -45,7 +35,7 @@
   </div>
 
   <script src="js/audio-manager.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/hub.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js');

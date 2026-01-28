@@ -1,6 +1,6 @@
-/* Homepage Styles */
+/* Shared Subject Page Styles (math.html, spelling.html) */
 
-.homepage {
+.subject-page {
   min-height: 100vh;
   min-height: 100dvh;
   background: linear-gradient(180deg, #e8f4fd 0%, #f0f4ff 50%, #fef3f0 100%);
@@ -11,10 +11,34 @@
   overflow-y: auto;
 }
 
+/* Back button */
+.subject-back-btn {
+  position: fixed;
+  top: var(--space-md);
+  left: var(--space-md);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--color-white);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  z-index: 100;
+  transition: all 0.2s;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.subject-back-btn:active {
+  transform: scale(0.95);
+}
+
 /* Title */
-.homepage-title {
+.subject-title {
   font-family: var(--font-display);
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   color: var(--color-primary);
   text-align: center;
   margin-top: var(--space-lg);
@@ -23,7 +47,12 @@
   text-shadow: 2px 2px 0px rgba(108, 92, 231, 0.2);
 }
 
-.homepage-subtitle {
+.subject-title.spelling {
+  color: var(--color-secondary);
+  text-shadow: 2px 2px 0px rgba(0, 206, 201, 0.2);
+}
+
+.subject-subtitle {
   font-size: 1.1rem;
   color: var(--color-text-light);
   text-align: center;
@@ -32,7 +61,7 @@
 }
 
 /* Settings Panel */
-.settings-panel {
+.subject-settings {
   background: var(--color-white);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
@@ -43,7 +72,7 @@
   animation: slideInUp 0.5s ease-out 0.3s both;
 }
 
-.settings-label {
+.subject-settings-label {
   font-weight: 700;
   font-size: 1rem;
   color: var(--color-text);
@@ -51,14 +80,13 @@
   display: block;
 }
 
-/* Mode Toggle */
-.mode-toggle {
+/* Mode / Difficulty Toggle */
+.subject-toggle {
   display: flex;
   gap: var(--space-sm);
-  margin-bottom: var(--space-lg);
 }
 
-.mode-btn {
+.subject-toggle-btn {
   flex: 1;
   padding: var(--space-md) var(--space-sm);
   border-radius: var(--radius-md);
@@ -69,39 +97,19 @@
   transition: all 0.2s ease;
 }
 
-.mode-btn.active {
+.subject-toggle-btn.active {
   background: var(--color-primary);
   color: white;
   box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
 }
 
-/* Question Count */
-.count-buttons {
-  display: flex;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-}
-
-.count-btn {
-  flex: 1;
-  min-width: 60px;
-  padding: var(--space-md) var(--space-sm);
-  border-radius: var(--radius-md);
-  font-size: 1.1rem;
-  font-weight: 800;
-  background: #f1f3f5;
-  color: var(--color-text-light);
-  transition: all 0.2s ease;
-}
-
-.count-btn.active {
+.subject-toggle-btn.active.spelling {
   background: var(--color-secondary);
-  color: white;
   box-shadow: 0 4px 12px rgba(0, 206, 201, 0.3);
 }
 
 /* Game Grid */
-.game-grid {
+.subject-game-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-md);
@@ -111,7 +119,7 @@
   animation: slideInUp 0.5s ease-out 0.5s both;
 }
 
-.game-card {
+.subject-game-card {
   background: var(--color-white);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
@@ -127,41 +135,41 @@
   overflow: hidden;
 }
 
-.game-card:active {
+.subject-game-card:active {
   transform: scale(0.97);
 }
 
-.game-card.playable {
+.subject-game-card.playable {
   border: 2px solid transparent;
 }
 
-.game-card.playable:hover {
+.subject-game-card.playable:hover {
   border-color: var(--color-primary);
   box-shadow: 0 6px 24px rgba(108, 92, 231, 0.15);
 }
 
-.game-card.locked {
+.subject-game-card.locked {
   opacity: 0.6;
   pointer-events: none;
 }
 
-.game-icon {
+.subject-game-icon {
   font-size: 2.5rem;
   line-height: 1;
 }
 
-.game-name {
+.subject-game-name {
   font-weight: 700;
   font-size: 0.95rem;
   text-align: center;
 }
 
-.game-lock {
+.subject-game-lock {
   position: absolute;
   top: var(--space-sm);
   right: var(--space-sm);
   font-size: 0.8rem;
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: var(--radius-sm);
   padding: 2px 6px;
   color: var(--color-text-light);
@@ -176,7 +184,7 @@
   height: 44px;
   border-radius: var(--radius-full);
   background: var(--color-white);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -189,18 +197,54 @@
   opacity: 0.5;
 }
 
+/* Spelling Word Input */
+.spelling-word-input {
+  width: 100%;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 2px solid #e0e0e0;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: #f8f9fa;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.spelling-word-input:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+  background: white;
+}
+
+.spelling-word-input::placeholder {
+  color: var(--color-text-light);
+  font-weight: 400;
+}
+
+.spelling-word-count {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  margin-top: var(--space-xs);
+  text-align: right;
+}
+
 /* Landscape adjustments */
 @media (orientation: landscape) {
-  .homepage {
+  .subject-page {
     padding: var(--space-md) var(--space-xl);
   }
 
-  .homepage-title {
-    font-size: 2rem;
+  .subject-title {
+    font-size: 1.8rem;
     margin-top: var(--space-sm);
   }
 
-  .game-grid {
+  .subject-game-grid {
     grid-template-columns: repeat(4, 1fr);
     max-width: 700px;
   }
@@ -208,23 +252,23 @@
 
 /* iPad-specific sizing */
 @media (min-width: 768px) {
-  .homepage-title {
-    font-size: 3rem;
+  .subject-title {
+    font-size: 2.8rem;
   }
 
-  .settings-panel {
+  .subject-settings {
     max-width: 600px;
   }
 
-  .game-grid {
+  .subject-game-grid {
     max-width: 600px;
   }
 
-  .game-card {
+  .subject-game-card {
     padding: var(--space-xl);
   }
 
-  .game-icon {
+  .subject-game-icon {
     font-size: 3rem;
   }
 }

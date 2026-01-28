@@ -1,7 +1,7 @@
 {
-  "name": "Ava's Math Games",
-  "short_name": "Math Fun",
-  "description": "Fun math mini-games for kids",
+  "name": "Ava's Learning Games",
+  "short_name": "Ava's Games",
+  "description": "Fun learning mini-games for kids",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f0f4ff",
