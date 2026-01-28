@@ -140,6 +140,9 @@ var CobblersWorkshop = (function () {
 
     if (scene) {
       scene.showOrder({ word: question.word, emoji: question.emoji });
+      scene.showNewCustomer();
+      scene.elfReset();
+      scene.elfIdle();
     }
   }
 
@@ -157,6 +160,13 @@ var CobblersWorkshop = (function () {
 
     if (scene) {
       scene.addShoePart(partIndex, SHOE_PARTS.length);
+      scene.elfTapHammer();
+      scene.customerReact('happy');
+    }
+
+    // Play hammer tap sound
+    if (typeof AudioManager !== 'undefined') {
+      AudioManager.playSfx('hammer_tap');
     }
   }
 
@@ -164,7 +174,15 @@ var CobblersWorkshop = (function () {
     if (gameOver) return;
 
     if (scene) {
+      scene.playSillyReaction();
       scene.shakeWorkbench();
+      scene.elfScratchHead();
+      scene.customerReact('worried');
+    }
+
+    // Play wrong buzzer sound
+    if (typeof AudioManager !== 'undefined') {
+      AudioManager.playSfx('wrong');
     }
 
     // In relaxed mode, wrong letters lose a star
@@ -179,9 +197,17 @@ var CobblersWorkshop = (function () {
     shoesCompleted++;
 
     if (scene) {
+      scene.elfVictoryDance();
+      scene.customerExit(true);
       scene.completeShoeToShelf(shoesCompleted, totalShoes, function () {
         // Shelf animation done
       });
+    }
+
+    // Play completion sounds
+    if (typeof AudioManager !== 'undefined') {
+      AudioManager.playSfx('chime');
+      AudioManager.playSfx('yay');
     }
   }
 
@@ -200,8 +226,15 @@ var CobblersWorkshop = (function () {
     shoesFailed++;
 
     if (scene) {
+      scene.elfSad();
+      scene.customerExit(false);
       scene.failShoe(function () {});
       scene.updateTimerBar(0);
+    }
+
+    // Play crumble sound
+    if (typeof AudioManager !== 'undefined') {
+      AudioManager.playSfx('crumble');
     }
 
     // Flash correct spelling

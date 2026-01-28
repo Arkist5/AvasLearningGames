@@ -34,6 +34,31 @@ var CobblersScene = new Phaser.Class({
     // Layout
     this.workbenchY = 0;
     this.shoeArea = { x: 0, y: 0 };
+
+    // Elf character
+    this.elfContainer = null;
+    this.elfArm = null;
+    this.elfBody = null;
+    this.elfHead = null;
+    this.elfExpression = 'happy';
+    this.elfIdleTween = null;
+
+    // Customer window
+    this.windowGroup = null;
+    this.customerContainer = null;
+    this.currentCustomer = null;
+    this.customerPool = [
+      { skin: 0xFFDBAC, hair: 0xF5D76E, type: 'girl' },  // Light, blonde
+      { skin: 0xD4A574, hair: 0x5D4037, type: 'boy' },   // Medium, brown
+      { skin: 0x8D5524, hair: 0x2C1810, type: 'girl' },  // Dark, black
+      { skin: 0xFFDBAC, hair: 0xC0392B, type: 'boy' },   // Light, red
+      { skin: 0xC4A67C, hair: 0x2C1810, type: 'girl' },  // Medium, black
+      { skin: 0xE8BEAC, hair: 0x4A3728, type: 'boy' },   // Light-medium, brown
+    ];
+
+    // Silly reactions
+    this.sillyReactions = ['googlyEyes', 'fire', 'waterSquirt', 'wiggle'];
+    this.lastSillyIndex = -1;
   },
 
   create: function () {
@@ -66,6 +91,12 @@ var CobblersScene = new Phaser.Class({
 
     // Create particle textures
     this.createParticleTextures();
+
+    // Customer window (upper-left)
+    this.createWindow(w, h);
+
+    // Elf cobbler character
+    this.createElf(w, h);
 
     // Notify CobblersWorkshop that scene is ready
     if (typeof CobblersWorkshop !== 'undefined' && CobblersWorkshop._pendingInit) {
@@ -863,6 +894,687 @@ var CobblersScene = new Phaser.Class({
     this.cameras.main.pan(w * 0.5, h * 0.25, 1500, 'Sine.easeInOut');
   },
 
+  // --- Elf Character ---
+
+  createElf: function (w, h) {
+    // Position elf to the left of the shoe work area
+    var elfX = w * 0.18;
+    var elfY = this.workbenchY - 10;
+
+    this.elfContainer = this.add.container(elfX, elfY);
+    this.elfContainer.setDepth(12);
+
+    // Body (green tunic)
+    this.elfBody = this.add.graphics();
+    this.elfBody.fillStyle(0x27ae60, 1);
+    this.elfBody.fillRoundedRect(-12, -20, 24, 30, 6);
+    // Belt
+    this.elfBody.fillStyle(0x8B4513, 1);
+    this.elfBody.fillRect(-14, -2, 28, 5);
+    // Belt buckle
+    this.elfBody.fillStyle(0xf1c40f, 1);
+    this.elfBody.fillRect(-3, -1, 6, 3);
+
+    // Legs
+    var legs = this.add.graphics();
+    legs.fillStyle(0x5D4037, 1);
+    legs.fillRect(-8, 10, 6, 14);
+    legs.fillRect(2, 10, 6, 14);
+    // Shoes
+    legs.fillStyle(0x2C1810, 1);
+    legs.fillRoundedRect(-10, 22, 10, 5, 2);
+    legs.fillRoundedRect(0, 22, 10, 5, 2);
+
+    // Head
+    this.elfHead = this.add.container(0, -32);
+
+    var head = this.add.graphics();
+    // Face
+    head.fillStyle(0xFFDBAC, 1);
+    head.fillCircle(0, 0, 14);
+    // Rosy cheeks
+    head.fillStyle(0xFFB6C1, 0.5);
+    head.fillCircle(-8, 3, 4);
+    head.fillCircle(8, 3, 4);
+    // Eyes
+    head.fillStyle(0x2C1810, 1);
+    head.fillCircle(-5, -2, 2.5);
+    head.fillCircle(5, -2, 2.5);
+    // Eye highlights
+    head.fillStyle(0xFFFFFF, 0.8);
+    head.fillCircle(-4, -3, 1);
+    head.fillCircle(6, -3, 1);
+    // Happy smile
+    head.lineStyle(2, 0x2C1810, 1);
+    head.beginPath();
+    head.arc(0, 2, 5, 0.2, Math.PI - 0.2);
+    head.strokePath();
+
+    // Pointed ears
+    var ears = this.add.graphics();
+    ears.fillStyle(0xFFDBAC, 1);
+    // Left ear
+    ears.beginPath();
+    ears.moveTo(-14, -2);
+    ears.lineTo(-22, -8);
+    ears.lineTo(-14, 2);
+    ears.closePath();
+    ears.fillPath();
+    // Right ear
+    ears.beginPath();
+    ears.moveTo(14, -2);
+    ears.lineTo(22, -8);
+    ears.lineTo(14, 2);
+    ears.closePath();
+    ears.fillPath();
+
+    // Hat (tall pointed green)
+    var hat = this.add.graphics();
+    hat.fillStyle(0x1e8449, 1);
+    hat.beginPath();
+    hat.moveTo(-14, -10);
+    hat.lineTo(0, -42);
+    hat.lineTo(14, -10);
+    hat.closePath();
+    hat.fillPath();
+    // Hat band
+    hat.fillStyle(0xf1c40f, 1);
+    hat.fillRect(-15, -12, 30, 4);
+    // Hat pom-pom
+    hat.fillStyle(0xe74c3c, 1);
+    hat.fillCircle(2, -40, 5);
+
+    this.elfHead.add([ears, head, hat]);
+
+    // Arm (for hammer animation) - starts at rest
+    this.elfArm = this.add.container(10, -8);
+    var armGfx = this.add.graphics();
+    armGfx.fillStyle(0x27ae60, 1);
+    armGfx.fillRect(0, -4, 18, 8); // Upper arm
+    armGfx.fillStyle(0xFFDBAC, 1);
+    armGfx.fillCircle(20, 0, 5); // Hand
+    // Mini hammer in hand
+    armGfx.fillStyle(0x8B6914, 1);
+    armGfx.fillRect(18, -12, 4, 16); // Handle
+    armGfx.fillStyle(0x636e72, 1);
+    armGfx.fillRect(14, -16, 12, 8); // Head
+    this.elfArm.add(armGfx);
+    this.elfArm.setRotation(-0.3); // Resting position
+
+    this.elfContainer.add([legs, this.elfBody, this.elfArm, this.elfHead]);
+
+    // Start idle animation
+    this.elfIdle();
+  },
+
+  elfIdle: function () {
+    if (!this.elfContainer) return;
+
+    // Stop any existing idle tween
+    if (this.elfIdleTween) {
+      this.elfIdleTween.stop();
+    }
+
+    // Subtle breathing animation
+    this.elfIdleTween = this.tweens.add({
+      targets: this.elfBody,
+      scaleY: 0.97,
+      scaleX: 1.02,
+      duration: 1200,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    // Occasional blink
+    this.time.addEvent({
+      delay: 2500 + Math.random() * 2000,
+      callback: this.elfBlink,
+      callbackScope: this,
+      loop: true,
+    });
+  },
+
+  elfBlink: function () {
+    if (!this.elfHead) return;
+    // Quick scale squash of head for blink effect
+    this.tweens.add({
+      targets: this.elfHead,
+      scaleY: 0.9,
+      duration: 80,
+      yoyo: true,
+      ease: 'Power1',
+    });
+  },
+
+  elfTapHammer: function () {
+    if (!this.elfArm || !this.elfContainer) return;
+
+    // Swing arm down (hammer tap)
+    this.tweens.add({
+      targets: this.elfArm,
+      rotation: 0.5,
+      duration: 100,
+      yoyo: true,
+      ease: 'Power2',
+    });
+
+    // Happy bounce
+    this.tweens.add({
+      targets: this.elfContainer,
+      y: this.elfContainer.y - 4,
+      duration: 100,
+      yoyo: true,
+      ease: 'Power2',
+    });
+  },
+
+  elfVictoryDance: function () {
+    if (!this.elfContainer) return;
+    var scene = this;
+
+    // Jump up with arms up (rotate arm up)
+    this.tweens.add({
+      targets: this.elfArm,
+      rotation: -1.2,
+      duration: 200,
+      ease: 'Back.easeOut',
+    });
+
+    // Jump sequence
+    this.tweens.add({
+      targets: this.elfContainer,
+      y: this.elfContainer.y - 20,
+      duration: 250,
+      yoyo: true,
+      repeat: 2,
+      ease: 'Power2',
+      onComplete: function () {
+        // Return arm to rest
+        scene.tweens.add({
+          targets: scene.elfArm,
+          rotation: -0.3,
+          duration: 300,
+          ease: 'Power2',
+        });
+      },
+    });
+
+    // Sparkles around elf
+    var elfX = this.elfContainer.x;
+    var elfY = this.elfContainer.y - 20;
+    var sparkEmitter = this.add.particles(elfX, elfY, 'cw_sparkle', {
+      speed: { min: 30, max: 70 },
+      angle: { min: 0, max: 360 },
+      lifespan: 600,
+      scale: { start: 0.6, end: 0 },
+      quantity: 10,
+      tint: [0xFFD700, 0xFFF9C4, 0x27ae60],
+      emitting: false,
+    });
+    sparkEmitter.setDepth(30);
+    sparkEmitter.explode();
+    this.time.delayedCall(800, function () { sparkEmitter.destroy(); });
+  },
+
+  elfScratchHead: function () {
+    if (!this.elfArm || !this.elfHead) return;
+    var scene = this;
+
+    // Move arm up to head
+    this.tweens.add({
+      targets: this.elfArm,
+      rotation: -1.5,
+      x: 5,
+      y: -25,
+      duration: 200,
+      yoyo: true,
+      hold: 400,
+      ease: 'Power2',
+      onComplete: function () {
+        scene.elfArm.x = 10;
+        scene.elfArm.y = -8;
+      },
+    });
+
+    // Tilt head confused
+    this.tweens.add({
+      targets: this.elfHead,
+      rotation: 0.2,
+      duration: 150,
+      yoyo: true,
+      hold: 400,
+      ease: 'Power2',
+    });
+  },
+
+  elfSad: function () {
+    if (!this.elfContainer || !this.elfBody) return;
+
+    // Slump down
+    this.tweens.add({
+      targets: this.elfContainer,
+      y: this.elfContainer.y + 8,
+      duration: 400,
+      ease: 'Power2',
+    });
+
+    // Arm drops
+    this.tweens.add({
+      targets: this.elfArm,
+      rotation: 0.6,
+      duration: 400,
+      ease: 'Power2',
+    });
+
+    // Head droops
+    this.tweens.add({
+      targets: this.elfHead,
+      y: this.elfHead.y + 5,
+      rotation: -0.1,
+      duration: 400,
+      ease: 'Power2',
+    });
+  },
+
+  elfReset: function () {
+    if (!this.elfContainer) return;
+    var w = this.scale.width;
+    var elfX = w * 0.18;
+    var elfY = this.workbenchY - 10;
+
+    // Reset elf position and pose
+    this.elfContainer.x = elfX;
+    this.elfContainer.y = elfY;
+    if (this.elfArm) {
+      this.elfArm.rotation = -0.3;
+      this.elfArm.x = 10;
+      this.elfArm.y = -8;
+    }
+    if (this.elfHead) {
+      this.elfHead.y = -32;
+      this.elfHead.rotation = 0;
+    }
+  },
+
+  // --- Customer Window ---
+
+  createWindow: function (w, h) {
+    // Window position: left side of wall, in visible area (wall is 0-55% of height)
+    var winW = 50;
+    var winH = 42;
+    var winX = winW / 2 + 12; // 12px margin from left edge
+    var winY = h * 0.32; // In the middle of the wall area
+
+    this.windowGroup = this.add.container(winX, winY);
+    this.windowGroup.setDepth(8);
+
+    var gfx = this.add.graphics();
+
+    // Window hole (dark background)
+    gfx.fillStyle(0x1a1a2e, 1);
+    gfx.fillRect(-winW / 2, -winH / 2, winW, winH);
+
+    // Wooden frame
+    gfx.fillStyle(0x5C3D1E, 1);
+    // Top
+    gfx.fillRect(-winW / 2 - 4, -winH / 2 - 4, winW + 8, 6);
+    // Bottom
+    gfx.fillRect(-winW / 2 - 4, winH / 2 - 2, winW + 8, 6);
+    // Left
+    gfx.fillRect(-winW / 2 - 4, -winH / 2, 6, winH);
+    // Right
+    gfx.fillRect(winW / 2 - 2, -winH / 2, 6, winH);
+
+    // Cross bars (4 panes)
+    gfx.fillStyle(0x5C3D1E, 1);
+    gfx.fillRect(-2, -winH / 2, 4, winH); // Vertical
+    gfx.fillRect(-winW / 2, -2, winW, 4); // Horizontal
+
+    this.windowGroup.add(gfx);
+
+    // Customer container (will hold customer graphics)
+    this.customerContainer = this.add.container(0, 10);
+    this.customerContainer.setDepth(5);
+    this.windowGroup.add(this.customerContainer);
+  },
+
+  showNewCustomer: function () {
+    if (!this.customerContainer) return;
+    var scene = this;
+
+    // Clear previous customer
+    this.customerContainer.removeAll(true);
+
+    // Pick random customer from pool
+    var idx = Math.floor(Math.random() * this.customerPool.length);
+    this.currentCustomer = this.customerPool[idx];
+
+    // Create customer graphics
+    var cust = this.add.graphics();
+
+    // Head
+    cust.fillStyle(this.currentCustomer.skin, 1);
+    cust.fillCircle(0, -8, 16);
+
+    // Hair (different styles for boy/girl)
+    cust.fillStyle(this.currentCustomer.hair, 1);
+    if (this.currentCustomer.type === 'girl') {
+      // Girl: longer hair sides
+      cust.fillCircle(0, -16, 12);
+      cust.fillRect(-14, -18, 6, 20);
+      cust.fillRect(8, -18, 6, 20);
+    } else {
+      // Boy: short hair top
+      cust.fillCircle(0, -18, 10);
+      cust.fillRect(-10, -22, 20, 8);
+    }
+
+    // Eyes
+    cust.fillStyle(0x2C1810, 1);
+    cust.fillCircle(-5, -10, 2);
+    cust.fillCircle(5, -10, 2);
+
+    // Smile
+    cust.lineStyle(2, 0x2C1810, 1);
+    cust.beginPath();
+    cust.arc(0, -4, 4, 0.3, Math.PI - 0.3);
+    cust.strokePath();
+
+    // Shoulders
+    cust.fillStyle(this.currentCustomer.type === 'girl' ? 0xe84393 : 0x3498db, 1);
+    cust.fillRoundedRect(-18, 8, 36, 20, 4);
+
+    this.customerContainer.add(cust);
+
+    // Animate peek-in from below
+    this.customerContainer.y = 45;
+    this.customerContainer.alpha = 0;
+
+    this.tweens.add({
+      targets: this.customerContainer,
+      y: 10,
+      alpha: 1,
+      duration: 400,
+      ease: 'Back.easeOut',
+    });
+
+    // Wave animation (quick scale pulse)
+    this.time.delayedCall(400, function () {
+      scene.tweens.add({
+        targets: scene.customerContainer,
+        scaleX: 1.1,
+        scaleY: 1.1,
+        duration: 150,
+        yoyo: true,
+        ease: 'Power2',
+      });
+    });
+  },
+
+  customerReact: function (type) {
+    if (!this.customerContainer) return;
+
+    if (type === 'happy') {
+      // Nod (quick y bounce)
+      this.tweens.add({
+        targets: this.customerContainer,
+        y: this.customerContainer.y - 3,
+        duration: 100,
+        yoyo: true,
+        ease: 'Power2',
+      });
+    } else if (type === 'worried') {
+      // Slight shake
+      this.tweens.add({
+        targets: this.customerContainer,
+        x: this.customerContainer.x - 3,
+        duration: 60,
+        yoyo: true,
+        repeat: 2,
+        ease: 'Linear',
+        onComplete: function () {
+          this.customerContainer.x = 0;
+        }.bind(this),
+      });
+    }
+  },
+
+  customerExit: function (happy) {
+    if (!this.customerContainer) return;
+    var scene = this;
+
+    if (happy) {
+      // Excited bounce then exit up
+      this.tweens.add({
+        targets: this.customerContainer,
+        y: this.customerContainer.y - 8,
+        duration: 150,
+        yoyo: true,
+        repeat: 2,
+        ease: 'Power2',
+        onComplete: function () {
+          scene.tweens.add({
+            targets: scene.customerContainer,
+            y: -50,
+            alpha: 0,
+            duration: 300,
+            ease: 'Power2',
+          });
+        },
+      });
+    } else {
+      // Sad sink down
+      this.tweens.add({
+        targets: this.customerContainer,
+        y: 50,
+        alpha: 0,
+        duration: 500,
+        ease: 'Power2',
+      });
+    }
+  },
+
+  // --- Silly Reactions ---
+
+  playSillyReaction: function () {
+    // Pick a random reaction (avoid repeating last one)
+    var idx;
+    do {
+      idx = Math.floor(Math.random() * this.sillyReactions.length);
+    } while (idx === this.lastSillyIndex && this.sillyReactions.length > 1);
+    this.lastSillyIndex = idx;
+
+    var reaction = this.sillyReactions[idx];
+    switch (reaction) {
+      case 'googlyEyes':
+        this.sillyGooglyEyes();
+        break;
+      case 'fire':
+        this.sillyFire();
+        break;
+      case 'waterSquirt':
+        this.sillyWaterSquirt();
+        break;
+      case 'wiggle':
+        this.sillyWiggle();
+        break;
+    }
+  },
+
+  sillyGooglyEyes: function () {
+    if (!this.shoeGroup) return;
+    var scene = this;
+
+    // Create googly eyes on the shoe
+    var eyes = this.add.container(this.shoeArea.x, this.shoeArea.y - 5);
+    eyes.setDepth(20);
+
+    var leftEye = this.add.graphics();
+    leftEye.fillStyle(0xFFFFFF, 1);
+    leftEye.fillCircle(-15, 0, 10);
+    leftEye.fillStyle(0x000000, 1);
+    leftEye.fillCircle(-15, 0, 5);
+
+    var rightEye = this.add.graphics();
+    rightEye.fillStyle(0xFFFFFF, 1);
+    rightEye.fillCircle(15, 0, 10);
+    rightEye.fillStyle(0x000000, 1);
+    rightEye.fillCircle(15, 0, 5);
+
+    eyes.add([leftEye, rightEye]);
+
+    // Pop in
+    eyes.scaleX = 0;
+    eyes.scaleY = 0;
+    this.tweens.add({
+      targets: eyes,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 150,
+      ease: 'Back.easeOut',
+    });
+
+    // Pupils look around randomly
+    var pupilTween = this.tweens.add({
+      targets: [leftEye, rightEye],
+      x: { from: -3, to: 3 },
+      y: { from: -2, to: 2 },
+      duration: 100,
+      yoyo: true,
+      repeat: 3,
+      ease: 'Power1',
+    });
+
+    // Shrink and remove
+    this.time.delayedCall(500, function () {
+      scene.tweens.add({
+        targets: eyes,
+        scaleX: 0,
+        scaleY: 0,
+        alpha: 0,
+        duration: 150,
+        ease: 'Power2',
+        onComplete: function () { eyes.destroy(); },
+      });
+    });
+  },
+
+  sillyFire: function () {
+    if (!this.shoeGroup) return;
+    var scene = this;
+
+    // Create fire particle texture if not exists
+    if (!this.textures.exists('cw_fire')) {
+      var fireGfx = this.make.graphics({ x: 0, y: 0, add: false });
+      fireGfx.fillStyle(0xFF6B35, 1);
+      fireGfx.fillCircle(4, 4, 4);
+      fireGfx.generateTexture('cw_fire', 8, 8);
+      fireGfx.destroy();
+    }
+
+    // Fire particles
+    var fireEmitter = this.add.particles(this.shoeArea.x, this.shoeArea.y - 10, 'cw_fire', {
+      speed: { min: 30, max: 60 },
+      angle: { min: 250, max: 290 },
+      lifespan: 400,
+      scale: { start: 0.8, end: 0 },
+      alpha: { start: 1, end: 0 },
+      tint: [0xFF6B35, 0xFFD93D, 0xFF4500],
+      quantity: 8,
+      frequency: 50,
+    });
+    fireEmitter.setDepth(25);
+
+    // Stop after a moment, then puff
+    this.time.delayedCall(350, function () {
+      fireEmitter.stop();
+
+      // Smoke puff
+      var smokeEmitter = scene.add.particles(scene.shoeArea.x, scene.shoeArea.y - 10, 'cw_dust', {
+        speed: { min: 20, max: 50 },
+        angle: { min: 240, max: 300 },
+        lifespan: 400,
+        scale: { start: 0.8, end: 0 },
+        alpha: { start: 0.6, end: 0 },
+        tint: 0x666666,
+        quantity: 6,
+        emitting: false,
+      });
+      smokeEmitter.setDepth(25);
+      smokeEmitter.explode();
+
+      scene.time.delayedCall(500, function () {
+        fireEmitter.destroy();
+        smokeEmitter.destroy();
+      });
+    });
+  },
+
+  sillyWaterSquirt: function () {
+    if (!this.shoeGroup) return;
+    var scene = this;
+
+    // Create water particle texture if not exists
+    if (!this.textures.exists('cw_water')) {
+      var waterGfx = this.make.graphics({ x: 0, y: 0, add: false });
+      waterGfx.fillStyle(0x74b9ff, 1);
+      waterGfx.fillCircle(3, 3, 3);
+      waterGfx.generateTexture('cw_water', 6, 6);
+      waterGfx.destroy();
+    }
+
+    // Water spray particles
+    var waterEmitter = this.add.particles(this.shoeArea.x, this.shoeArea.y, 'cw_water', {
+      speed: { min: 60, max: 100 },
+      angle: { min: 200, max: 340 },
+      lifespan: 500,
+      scale: { start: 0.6, end: 0.2 },
+      alpha: { start: 0.8, end: 0 },
+      gravityY: 150,
+      tint: [0x74b9ff, 0x0984e3, 0x81ecec],
+      quantity: 12,
+      emitting: false,
+    });
+    waterEmitter.setDepth(25);
+    waterEmitter.explode();
+
+    this.time.delayedCall(600, function () {
+      waterEmitter.destroy();
+    });
+  },
+
+  sillyWiggle: function () {
+    if (!this.shoeGroup) return;
+    var scene = this;
+
+    // Shoe wiggles side to side like trying to escape
+    this.tweens.add({
+      targets: this.shoeGroup,
+      rotation: 0.15,
+      duration: 60,
+      yoyo: true,
+      repeat: 5,
+      ease: 'Sine.easeInOut',
+      onComplete: function () {
+        scene.shoeGroup.rotation = 0;
+      },
+    });
+
+    // Also wobble up and down
+    this.tweens.add({
+      targets: this.shoeGroup,
+      y: this.shoeArea.y - 5,
+      duration: 80,
+      yoyo: true,
+      repeat: 3,
+      ease: 'Power1',
+      onComplete: function () {
+        scene.shoeGroup.y = scene.shoeArea.y;
+      },
+    });
+  },
+
   // --- Cleanup ---
 
   shutdown: function () {
@@ -875,6 +1587,18 @@ var CobblersScene = new Phaser.Class({
     if (this.orderScroll) {
       this.orderScroll.destroy();
       this.orderScroll = null;
+    }
+    if (this.elfContainer) {
+      this.elfContainer.destroy();
+      this.elfContainer = null;
+    }
+    if (this.windowGroup) {
+      this.windowGroup.destroy();
+      this.windowGroup = null;
+    }
+    if (this.elfIdleTween) {
+      this.elfIdleTween.stop();
+      this.elfIdleTween = null;
     }
   },
 });
