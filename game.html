@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="css/santa-delivery.css">
   <link rel="stylesheet" href="css/cobbler-game.css">
   <link rel="stylesheet" href="css/zoo-game.css">
+  <link rel="stylesheet" href="css/paper-boy.css">
 </head>
 <body>
   <div class="game-page" id="game-page">
@@ -36,6 +37,7 @@
   <script src="js/word-audio-manager.js"></script>
   <script src="js/game-base.js"></script>
   <script src="js/spelling-game-base.js"></script>
+  <script src="js/dual-mode-adapter.js"></script>
 
   <!-- Game modules -->
   <script src="js/games/animal-crossing.js"></script>
@@ -43,7 +45,7 @@
 
   <script>
     // Games that require Phaser 3
-    var PHASER_GAMES = ['santa-delivery', 'cobbler', 'zoo'];
+    var PHASER_GAMES = ['santa-delivery', 'cobbler', 'zoo', 'paper-boy'];
 
     // Parse URL params and launch the right game
     (function() {
@@ -86,6 +88,7 @@
           'santa-delivery': ['js/games/santa-scene.js', 'js/games/santa-delivery.js'],
           'cobbler': ['js/games/cobbler-scene.js', 'js/games/cobbler-game.js'],
           'zoo': ['js/games/zoo-scene.js', 'js/games/zoo-game.js'],
+          'paper-boy': ['js/games/paper-boy-scene.js', 'js/games/paper-boy.js'],
         };
         var scripts = gameScripts[gameId] || [];
         loadScript('https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js', function() {
@@ -126,6 +129,14 @@
             difficulty: difficulty,
             presentation: presentation,
             timed: timed,
+          });
+        } else if (id === 'paper-boy') {
+          PaperBoy.start({
+            subject: subject,
+            mode: difficulty === 'hard' ? (subject === 'spelling' ? 'keyboard' : 'type') : (subject === 'spelling' ? 'scramble' : 'choice'),
+            questionCount: count,
+            difficulty: difficulty,
+            presentation: presentation,
           });
         }
       }

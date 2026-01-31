@@ -8,6 +8,7 @@
     // Live
     { id: 'animal-crossing', name: 'Animal Crossing', icon: '\uD83D\uDC2F', playable: true },
     { id: 'breakfast-helper', name: 'Breakfast Helper', icon: '\uD83C\uDF73', playable: true },
+    { id: 'paper-boy', name: 'Paper Boy', icon: '\uD83D\uDEB4', playable: true },
     // Coming soon
     { id: 'traffic-jam', name: 'Traffic Jam', icon: '\uD83D\uDE97', playable: false },
     { id: 'baking-contest', name: 'Baking Contest', icon: '\uD83C\uDF82', playable: false },

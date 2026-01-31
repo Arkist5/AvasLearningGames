@@ -6,6 +6,7 @@
 (function () {
   var GAMES = [
     // Live
+    { id: 'paper-boy', name: 'Paper Boy', icon: '\uD83D\uDEB4', playable: true },
     { id: 'zoo', name: 'Zoo Bedtime', icon: '\uD83E\uDD81', playable: true },
     { id: 'cobbler', name: "Cobbler's Workshop", icon: '\uD83D\uDC5E', playable: true },
     { id: 'santa-delivery', name: "Santa's Delivery", icon: '\uD83C\uDF85', playable: true },
@@ -29,7 +30,7 @@
         var parsed = JSON.parse(saved);
         sharedSettings = { muted: parsed.muted || false };
       }
-    } catch (e) {}
+    } catch (e) { }
 
     try {
       var saved = localStorage.getItem('avagames-spelling');
@@ -40,13 +41,13 @@
           timed: parsed.timed !== undefined ? parsed.timed : true,
         };
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   function saveSpellingSettings() {
     try {
       localStorage.setItem('avagames-spelling', JSON.stringify(spellingSettings));
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // Parse words from text — one per line, trimmed, deduplicated, non-empty
@@ -74,7 +75,11 @@
       card.className = 'subject-game-card ' + (game.playable ? 'playable' : 'locked');
 
       if (game.playable) {
-        card.href = 'game.html?game=' + game.id + '&subject=spelling&difficulty=easy&presentation=audio-picture&timed=' + spellingSettings.timed;
+        if (game.url) {
+          card.href = game.url + '?mode=' + (spellingSettings.timed ? 'timed' : 'relaxed') + '&count=10';
+        } else {
+          card.href = 'game.html?game=' + game.id + '&subject=spelling&difficulty=easy&presentation=audio-picture&timed=' + spellingSettings.timed;
+        }
       }
 
       var icon = document.createElement('div');
@@ -175,7 +180,7 @@
       sharedSettings.muted = !sharedSettings.muted;
       try {
         localStorage.setItem('avagames-settings', JSON.stringify(sharedSettings));
-      } catch (e) {}
+      } catch (e) { }
       updateIcon();
     });
   }
