@@ -1,0 +1,180 @@
+/* ─── Doggy Daycare Game Styles ─── */
+
+/* ─── Paw Print Bar (in-scene) ─── */
+
+.dd-paw-bar {
+  display: flex;
+  gap: 6px;
+  padding: 6px 16px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 20px;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+}
+
+.dd-paw {
+  font-size: 1.6rem;
+  transition: all 0.3s ease;
+}
+
+.dd-paw.lost {
+  opacity: 0.25;
+  filter: grayscale(1);
+  animation: ddPawLose 0.6s ease;
+}
+
+/* ─── Answer Flash ─── */
+
+.dd-answer-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  padding: 12px 28px;
+  border-radius: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 70;
+  animation: popIn 0.3s ease-out;
+  letter-spacing: 4px;
+}
+
+/* ─── End Screens ─── */
+
+.dd-end-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.6s ease-out;
+  gap: 12px;
+}
+
+.dd-end-screen.victory {
+  background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 40%, #a5d6a7 100%);
+}
+
+.dd-end-screen.gameover {
+  background: linear-gradient(180deg, #fce4ec 0%, #f8bbd0 50%, #f48fb1 100%);
+}
+
+.dd-end-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  color: #4caf50;
+  animation: celebration 1s ease;
+  text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
+}
+
+.dd-end-screen.gameover .dd-end-title {
+  color: #c2185b;
+}
+
+.dd-end-subtitle {
+  font-size: 1.1rem;
+  color: #546e7a;
+}
+
+.dd-end-icon {
+  font-size: 3rem;
+  animation: bounce 1.5s ease infinite;
+}
+
+.dd-end-paws {
+  font-size: 2rem;
+  display: flex;
+  gap: 6px;
+}
+
+.dd-end-stats {
+  font-size: 1.1rem;
+  color: #455a64;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.dd-end-screen.victory .dd-end-stats {
+  color: #2e7d32;
+}
+
+.dd-end-btn {
+  padding: var(--space-md) var(--space-xxl);
+  border-radius: var(--radius-lg);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: white;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  margin-top: 4px;
+}
+
+.dd-end-btn.primary {
+  background: #4caf50;
+}
+
+.dd-end-btn.primary:active {
+  background: #43a047;
+  transform: scale(0.95);
+}
+
+.dd-end-btn.secondary {
+  background: #2196f3;
+}
+
+.dd-end-btn.secondary:active {
+  background: #1e88e5;
+  transform: scale(0.95);
+}
+
+/* ─── Phaser Canvas Positioning ─── */
+
+#game-scene canvas {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+/* ─── Responsive ─── */
+
+@media (orientation: landscape) {
+  .dd-paw {
+    font-size: 1.3rem;
+  }
+
+  .dd-answer-flash {
+    font-size: 1.5rem;
+    padding: 10px 24px;
+  }
+}
+
+/* Short portrait screens */
+@media (orientation: portrait) and (max-height: 700px) {
+  .dd-paw {
+    font-size: 1.4rem;
+  }
+
+  .dd-paw-bar {
+    padding: 4px 12px;
+  }
+}
+
+/* ─── Keyframes ─── */
+
+@keyframes ddPawLose {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.4) rotate(-10deg); }
+  60% { transform: scale(0.8) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}

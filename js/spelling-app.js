@@ -11,6 +11,7 @@
     { id: 'cobbler', name: "Cobbler's Workshop", icon: '\uD83D\uDC5E', playable: true },
     { id: 'santa-delivery', name: "Santa's Delivery", icon: '\uD83C\uDF85', playable: true },
     { id: 'supermarket-cashier', name: 'Supermarket Cashier', icon: '\uD83D\uDED2', playable: true },
+    { id: 'doggy-daycare', name: 'Doggy Daycare', icon: '\uD83D\uDC36', playable: true },
     // Coming soon
     { id: 'letter-rain', name: 'Letter Rain', icon: '\uD83C\uDF27\uFE0F', playable: false },
     { id: 'spell-garden', name: 'Spell Garden', icon: '\uD83C\uDF3B', playable: false },
