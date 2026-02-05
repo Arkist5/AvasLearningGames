@@ -1,6 +1,7 @@
 /**
  * Zoo Bedtime - Help zoo animals get to their cozy sleeping spots.
- * Uses Phaser 3 for scene visuals, SpellingGameBase for DOM input/HUD.
+ * Works with BOTH math and spelling modes via DualModeAdapter.
+ * Uses Phaser 3 for scene visuals, DualModeAdapter for unified input/HUD.
  *
  * Flow per word:
  * 1. Animal appears outside habitat gate
@@ -40,6 +41,7 @@ var ZooBedtime = (function () {
   var timed = true;
   var usedAnimals = [];
   var currentAnimalIndex = 0;
+  var currentSubject = 'spelling';
 
   function el(tag, className, textContent) {
     var e = document.createElement(tag);
@@ -50,14 +52,19 @@ var ZooBedtime = (function () {
 
   function start(options) {
     options = options || {};
-    var mode = options.mode || 'scramble';
+    var subject = options.subject || 'spelling';
+    var mode = options.mode || (subject === 'spelling' ? 'scramble' : 'choice');
     var questionCount = options.questionCount || 10;
     var presentation = options.presentation || 'audio-picture';
     var difficulty = options.difficulty || 'easy';
     timed = options.timed !== undefined ? options.timed : true;
 
+    currentSubject = subject;
+
     // Map difficulty to input mode
-    if (difficulty === 'hard') mode = 'keyboard';
+    if (difficulty === 'hard') {
+      mode = subject === 'spelling' ? 'keyboard' : 'type';
+    }
 
     totalAnimals = questionCount;
     animalsCompleted = 0;
@@ -103,24 +110,28 @@ var ZooBedtime = (function () {
         scene.hideTimerBar();
       }
 
-      SpellingGameBase.init({ hudContainer: hudContainer, inputContainer: inputContainer }, {
+      DualModeAdapter.init({
+        subject: subject,
+        containers: { hudContainer: hudContainer, inputContainer: inputContainer },
         questionCount: questionCount,
         mode: mode,
         presentation: presentation,
         showLives: false,       // Custom star bar
         wrongLosesLife: false,  // We manage lives ourselves
         useCheckpoints: false,
-        noDistractors: true,    // Only show letters in the word
+        noDistractors: true,
         timerDuration: timed ? TIMER_SECONDS : null,
-        onCorrect: handleCorrect,
-        onWrong: handleWrong,
-        onComplete: handleComplete,
-        onQuestionShow: handleQuestionShow,
-        onTimeout: handleTimeout,
-        onTimerTick: handleTimerTick,
-        onLetterCorrect: handleLetterCorrect,
-        onLetterWrong: handleLetterWrong,
-        onWordComplete: handleWordComplete,
+        callbacks: {
+          onQuestionShow: handleQuestionShow,
+          onCorrect: handleCorrect,
+          onWrong: handleWrong,
+          onTimeout: handleTimeout,
+          onTimerTick: handleTimerTick,
+          onComplete: handleComplete,
+          onLetterCorrect: handleLetterCorrect,
+          onLetterWrong: handleLetterWrong,
+          onWordComplete: handleWordComplete,
+        },
       });
     };
 
@@ -157,7 +168,7 @@ var ZooBedtime = (function () {
 
   function handleQuestionShow(question, index) {
     if (gameOver) return;
-    currentWordLength = question.word.length;
+    currentWordLength = String(question.display).length;
     currentAnimalIndex++;
 
     var animal = getNextAnimal();
@@ -208,8 +219,20 @@ var ZooBedtime = (function () {
   }
 
   function handleWordComplete(question) {
+    // Spelling: word completed correctly
     if (gameOver) return;
+    handleAnimalSuccess();
+  }
 
+  function handleCorrect(question, index) {
+    // Math: answer correct (for spelling, handleWordComplete handles it)
+    if (gameOver) return;
+    if (currentSubject === 'math') {
+      handleAnimalSuccess();
+    }
+  }
+
+  function handleAnimalSuccess() {
     animalsCompleted++;
 
     if (scene) {
@@ -223,10 +246,6 @@ var ZooBedtime = (function () {
       AudioManager.playSfx('chime');
       AudioManager.playSfx('yay');
     }
-  }
-
-  function handleCorrect(question, index) {
-    // Handled by handleWordComplete
   }
 
   function handleWrong(question, livesRemaining) {
@@ -264,7 +283,7 @@ var ZooBedtime = (function () {
 
     // Advance to next question
     setTimeout(function () {
-      SpellingGameBase.forceNextQuestion();
+      DualModeAdapter.forceNextQuestion();
     }, 2500);
   }
 
@@ -287,19 +306,25 @@ var ZooBedtime = (function () {
     if (starsRemaining <= 0 && !gameOver) {
       gameOver = true;
       gameEnded = true;
-      SpellingGameBase.stopTimer();
+      DualModeAdapter.stopTimer();
       setTimeout(function () {
         showGameOverScreen();
       }, 2500);
     }
   }
 
-  // --- Correct Spelling Flash ---
+  // --- Correct Answer Flash ---
 
   function showCorrectSpelling(question) {
     var sceneEl = document.getElementById('game-scene');
     var flash = el('div', 'zoo-answer-flash');
-    flash.textContent = question.word.toUpperCase();
+
+    if (currentSubject === 'spelling') {
+      flash.textContent = String(question.answer).toUpperCase();
+    } else {
+      flash.textContent = question.answer;
+    }
+
     sceneEl.appendChild(flash);
     setTimeout(function () { flash.remove(); }, 2200);
   }
@@ -336,7 +361,7 @@ var ZooBedtime = (function () {
     // Home
     var homeBtn = el('button', 'zoo-end-btn secondary', 'Home');
     homeBtn.addEventListener('click', function () {
-      window.location.href = 'spelling.html';
+      window.location.href = currentSubject === 'spelling' ? 'spelling.html' : 'math.html';
     });
     screen.appendChild(homeBtn);
 
@@ -370,7 +395,7 @@ var ZooBedtime = (function () {
     // Home
     var homeBtn = el('button', 'zoo-end-btn secondary', 'Home');
     homeBtn.addEventListener('click', function () {
-      window.location.href = 'spelling.html';
+      window.location.href = currentSubject === 'spelling' ? 'spelling.html' : 'math.html';
     });
     screen.appendChild(homeBtn);
 
@@ -384,7 +409,7 @@ var ZooBedtime = (function () {
       phaserGame = null;
     }
     scene = null;
-    SpellingGameBase.destroy();
+    DualModeAdapter.destroy();
   }
 
   return {

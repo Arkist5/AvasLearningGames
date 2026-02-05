@@ -1,11 +1,12 @@
 /**
- * Cobbler's Workshop - Spell words to build shoes in a cozy workshop.
- * Uses Phaser 3 for scene visuals, SpellingGameBase for DOM input/HUD.
+ * Cobbler's Workshop - Build shoes by answering questions correctly.
+ * Works with BOTH math and spelling modes via DualModeAdapter.
+ * Uses Phaser 3 for scene visuals, DualModeAdapter for unified input/HUD.
  *
- * Flow per word:
- * 1. Order scroll slides in with emoji prompt
- * 2. Word is spoken, empty shoe outline on workbench
- * 3. Player spells word using tiles or keyboard
+ * Flow per question:
+ * 1. Order scroll slides in with emoji/equation prompt
+ * 2. Question appears, empty shoe outline on workbench
+ * 3. Player answers using appropriate input mode
  * 4. Each correct letter → shoe part animates onto workbench
  * 5. Correct: shoe sparkles, floats to display shelf
  * 6. Timeout/fail: shoe crumbles, lose a star
@@ -28,6 +29,7 @@ var CobblersWorkshop = (function () {
   var starEls = [];
   var currentWordLength = 0;
   var timed = true;
+  var currentSubject = 'spelling';
 
   function el(tag, className, textContent) {
     var e = document.createElement(tag);
@@ -38,14 +40,19 @@ var CobblersWorkshop = (function () {
 
   function start(options) {
     options = options || {};
-    var mode = options.mode || 'scramble';
+    var subject = options.subject || 'spelling';
+    var mode = options.mode || (subject === 'spelling' ? 'scramble' : 'choice');
     var questionCount = options.questionCount || 10;
     var presentation = options.presentation || 'audio-picture';
     var difficulty = options.difficulty || 'easy';
     timed = options.timed !== undefined ? options.timed : true;
 
+    currentSubject = subject;
+
     // Map difficulty to input mode
-    if (difficulty === 'hard') mode = 'keyboard';
+    if (difficulty === 'hard') {
+      mode = subject === 'spelling' ? 'keyboard' : 'type';
+    }
 
     totalShoes = questionCount;
     shoesCompleted = 0;
@@ -89,24 +96,28 @@ var CobblersWorkshop = (function () {
         scene.hideTimerBar();
       }
 
-      SpellingGameBase.init({ hudContainer: hudContainer, inputContainer: inputContainer }, {
+      DualModeAdapter.init({
+        subject: subject,
+        containers: { hudContainer: hudContainer, inputContainer: inputContainer },
         questionCount: questionCount,
         mode: mode,
         presentation: presentation,
         showLives: false,       // Custom star bar
         wrongLosesLife: false,  // We manage lives ourselves
         useCheckpoints: false,
-        noDistractors: true,    // Only show letters in the word
+        noDistractors: true,
         timerDuration: timed ? TIMER_SECONDS : null,
-        onCorrect: handleCorrect,
-        onWrong: handleWrong,
-        onComplete: handleComplete,
-        onQuestionShow: handleQuestionShow,
-        onTimeout: handleTimeout,
-        onTimerTick: handleTimerTick,
-        onLetterCorrect: handleLetterCorrect,
-        onLetterWrong: handleLetterWrong,
-        onWordComplete: handleWordComplete,
+        callbacks: {
+          onQuestionShow: handleQuestionShow,
+          onCorrect: handleCorrect,
+          onWrong: handleWrong,
+          onTimeout: handleTimeout,
+          onTimerTick: handleTimerTick,
+          onComplete: handleComplete,
+          onLetterCorrect: handleLetterCorrect,
+          onLetterWrong: handleLetterWrong,
+          onWordComplete: handleWordComplete,
+        },
       });
     };
 
@@ -136,10 +147,10 @@ var CobblersWorkshop = (function () {
 
   function handleQuestionShow(question, index) {
     if (gameOver) return;
-    currentWordLength = question.word.length;
+    currentWordLength = String(question.display).length;
 
     if (scene) {
-      scene.showOrder({ word: question.word, emoji: question.emoji });
+      scene.showOrder({ word: question.display, emoji: question.visual });
       scene.showNewCustomer();
       scene.elfReset();
       scene.elfIdle();
@@ -192,8 +203,20 @@ var CobblersWorkshop = (function () {
   }
 
   function handleWordComplete(question) {
+    // Spelling: word completed correctly
     if (gameOver) return;
+    handleShoeComplete();
+  }
 
+  function handleCorrect(question, index) {
+    // Math: answer correct (for spelling, handleWordComplete handles it)
+    if (gameOver) return;
+    if (currentSubject === 'math') {
+      handleShoeComplete();
+    }
+  }
+
+  function handleShoeComplete() {
     shoesCompleted++;
 
     if (scene) {
@@ -209,10 +232,6 @@ var CobblersWorkshop = (function () {
       AudioManager.playSfx('chime');
       AudioManager.playSfx('yay');
     }
-  }
-
-  function handleCorrect(question, index) {
-    // Handled by handleWordComplete
   }
 
   function handleWrong(question, livesRemaining) {
@@ -257,7 +276,7 @@ var CobblersWorkshop = (function () {
 
     // Advance to next question
     setTimeout(function () {
-      SpellingGameBase.forceNextQuestion();
+      DualModeAdapter.forceNextQuestion();
     }, 2500);
   }
 
@@ -280,19 +299,25 @@ var CobblersWorkshop = (function () {
     if (starsRemaining <= 0 && !gameOver) {
       gameOver = true;
       gameEnded = true;
-      SpellingGameBase.stopTimer();
+      DualModeAdapter.stopTimer();
       setTimeout(function () {
         showGameOverScreen();
       }, 2500);
     }
   }
 
-  // --- Correct Spelling Flash ---
+  // --- Correct Answer Flash ---
 
   function showCorrectSpelling(question) {
     var sceneEl = document.getElementById('game-scene');
     var flash = el('div', 'cw-answer-flash');
-    flash.textContent = question.word.toUpperCase();
+
+    if (currentSubject === 'spelling') {
+      flash.textContent = String(question.answer).toUpperCase();
+    } else {
+      flash.textContent = question.answer;
+    }
+
     sceneEl.appendChild(flash);
     setTimeout(function () { flash.remove(); }, 2200);
   }
@@ -334,7 +359,7 @@ var CobblersWorkshop = (function () {
       // Home
       var homeBtn = el('button', 'cw-end-btn secondary', 'Home');
       homeBtn.addEventListener('click', function () {
-        window.location.href = 'spelling.html';
+        window.location.href = currentSubject === 'spelling' ? 'spelling.html' : 'math.html';
       });
       screen.appendChild(homeBtn);
 
@@ -369,7 +394,7 @@ var CobblersWorkshop = (function () {
     // Home
     var homeBtn = el('button', 'cw-end-btn secondary', 'Home');
     homeBtn.addEventListener('click', function () {
-      window.location.href = 'spelling.html';
+      window.location.href = currentSubject === 'spelling' ? 'spelling.html' : 'math.html';
     });
     screen.appendChild(homeBtn);
 
@@ -383,7 +408,7 @@ var CobblersWorkshop = (function () {
       phaserGame = null;
     }
     scene = null;
-    SpellingGameBase.destroy();
+    DualModeAdapter.destroy();
   }
 
   return {

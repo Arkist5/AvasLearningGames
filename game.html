@@ -105,59 +105,32 @@
       }
 
       function launchGame(id, mode, count, engine, difficulty, presentation) {
-        var gameOptions = { mode: mode, questionCount: count, engine: engine };
+        // Build unified options for all dual-mode games
+        var dualOptions = {
+          subject: subject,
+          mode: difficulty === 'hard' ? (subject === 'spelling' ? 'keyboard' : 'type') : (subject === 'spelling' ? 'scramble' : mode),
+          questionCount: count,
+          difficulty: difficulty,
+          presentation: presentation,
+          timed: timed,
+        };
 
         if (id === 'animal-crossing') {
-          AnimalCrossing.start(gameOptions);
+          AnimalCrossing.start(dualOptions);
         } else if (id === 'breakfast-helper') {
-          BreakfastHelper.start(gameOptions);
+          BreakfastHelper.start(dualOptions);
         } else if (id === 'santa-delivery') {
-          SantaDelivery.start({
-            mode: difficulty === 'hard' ? 'keyboard' : 'scramble',
-            questionCount: count,
-            difficulty: difficulty,
-            presentation: presentation,
-          });
+          SantaDelivery.start(dualOptions);
         } else if (id === 'cobbler') {
-          CobblersWorkshop.start({
-            mode: difficulty === 'hard' ? 'keyboard' : 'scramble',
-            questionCount: count,
-            difficulty: difficulty,
-            presentation: presentation,
-            timed: timed,
-          });
+          CobblersWorkshop.start(dualOptions);
         } else if (id === 'zoo') {
-          ZooBedtime.start({
-            mode: difficulty === 'hard' ? 'keyboard' : 'scramble',
-            questionCount: count,
-            difficulty: difficulty,
-            presentation: presentation,
-            timed: timed,
-          });
+          ZooBedtime.start(dualOptions);
         } else if (id === 'paper-boy') {
-          PaperBoy.start({
-            subject: subject,
-            mode: difficulty === 'hard' ? (subject === 'spelling' ? 'keyboard' : 'type') : (subject === 'spelling' ? 'scramble' : 'choice'),
-            questionCount: count,
-            difficulty: difficulty,
-            presentation: presentation,
-          });
+          PaperBoy.start(dualOptions);
         } else if (id === 'supermarket-cashier') {
-          SupermarketCashier.start({
-            subject: subject,
-            mode: difficulty === 'hard' ? (subject === 'spelling' ? 'keyboard' : 'type') : (subject === 'spelling' ? 'scramble' : 'choice'),
-            questionCount: count,
-            difficulty: difficulty,
-            presentation: presentation,
-          });
+          SupermarketCashier.start(dualOptions);
         } else if (id === 'doggy-daycare') {
-          DoggyDaycare.start({
-            subject: subject,
-            mode: difficulty === 'hard' ? (subject === 'spelling' ? 'keyboard' : 'type') : (subject === 'spelling' ? 'scramble' : 'choice'),
-            questionCount: count,
-            difficulty: difficulty,
-            presentation: presentation,
-          });
+          DoggyDaycare.start(dualOptions);
         }
       }
 

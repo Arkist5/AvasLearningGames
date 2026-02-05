@@ -1,5 +1,6 @@
 /**
- * Animal Crossing - Help animals cross a busy street by answering math questions.
+ * Animal Crossing - Help animals cross a busy street by answering questions.
+ * Works with BOTH math and spelling modes via DualModeAdapter.
  */
 
 const AnimalCrossing = (() => {
@@ -21,6 +22,7 @@ const AnimalCrossing = (() => {
   let savedAnimalsContainer = null;
   let trafficLights = {};
   let carInterval = null;
+  let currentSubject = 'math';
 
   function el(tag, className, textContent) {
     const e = document.createElement(tag);
@@ -30,7 +32,13 @@ const AnimalCrossing = (() => {
   }
 
   function start(options = {}) {
-    const { mode = 'type', questionCount = 10, engine } = options;
+    const subject = options.subject || 'math';
+    const mode = options.mode || (subject === 'spelling' ? 'scramble' : 'type');
+    const questionCount = options.questionCount || 10;
+    const presentation = options.presentation || 'audio-picture';
+    const difficulty = options.difficulty || 'easy';
+
+    currentSubject = subject;
 
     sceneEl = document.getElementById('game-scene');
     const hudContainer = document.getElementById('game-hud-container');
@@ -45,17 +53,25 @@ const AnimalCrossing = (() => {
     // Start background cars
     startBackgroundCars();
 
-    // Init game base (engine + UI)
-    GameBase.init({ hudContainer, inputContainer }, {
-      engine,
+    // Init via DualModeAdapter (handles math or spelling engine)
+    DualModeAdapter.init({
+      subject: subject,
+      containers: { hudContainer, inputContainer },
       questionCount,
       mode,
-      onCorrect: handleCorrect,
-      onWrong: handleWrong,
-      onCheckpoint: handleCheckpoint,
-      onCheckpointRestart: handleCheckpointRestart,
-      onComplete: handleComplete,
-      onQuestionShow: handleQuestionShow,
+      presentation,
+      noDistractors: true,
+      callbacks: {
+        onCorrect: handleCorrect,
+        onWrong: handleWrong,
+        onCheckpoint: handleCheckpoint,
+        onCheckpointRestart: handleCheckpointRestart,
+        onComplete: handleComplete,
+        onQuestionShow: handleQuestionShow,
+        onLetterCorrect: handleLetterCorrect,
+        onLetterWrong: handleLetterWrong,
+        onWordComplete: handleWordComplete,
+      },
     });
   }
 
@@ -164,7 +180,35 @@ const AnimalCrossing = (() => {
     setTrafficLight('red');
   }
 
+  function handleLetterCorrect(letter, position) {
+    // Small visual feedback - traffic light flickers yellow
+  }
+
+  function handleLetterWrong(letter, position) {
+    // Wrong letter - animal flinches briefly
+    if (activeAnimalEl) {
+      activeAnimalEl.classList.add('flinch');
+      setTimeout(() => {
+        if (activeAnimalEl) activeAnimalEl.classList.remove('flinch');
+      }, 300);
+    }
+  }
+
+  function handleWordComplete(question) {
+    // Spelling: word completed correctly
+    if (currentSubject === 'spelling') {
+      handleCrossing();
+    }
+  }
+
   function handleCorrect(question, index) {
+    // Math: answer correct (for spelling, handleWordComplete handles it)
+    if (currentSubject === 'math') {
+      handleCrossing();
+    }
+  }
+
+  function handleCrossing() {
     // Traffic goes green for the animal
     setTrafficLight('green');
 
@@ -343,7 +387,7 @@ const AnimalCrossing = (() => {
       clearInterval(carInterval);
       carInterval = null;
     }
-    GameBase.destroy();
+    DualModeAdapter.destroy();
   }
 
   return {

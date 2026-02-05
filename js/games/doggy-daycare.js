@@ -307,7 +307,7 @@ var DoggyDaycare = (function () {
       // Home button
       var homeBtn = el('button', 'dd-end-btn secondary', 'Home');
       homeBtn.addEventListener('click', function () {
-        window.location.href = 'spelling.html';
+        window.location.href = currentSubject === 'spelling' ? 'spelling.html' : 'math.html';
       });
       screen.appendChild(homeBtn);
 
@@ -345,7 +345,7 @@ var DoggyDaycare = (function () {
     // Home button
     var homeBtn = el('button', 'dd-end-btn secondary', 'Home');
     homeBtn.addEventListener('click', function () {
-      window.location.href = 'spelling.html';
+      window.location.href = currentSubject === 'spelling' ? 'spelling.html' : 'math.html';
     });
     screen.appendChild(homeBtn);
 

@@ -147,6 +147,16 @@ var DualModeAdapter = (function () {
             callbacks.onComplete(stats);
           }
         },
+        onCheckpoint: function () {
+          if (callbacks.onCheckpoint) {
+            callbacks.onCheckpoint();
+          }
+        },
+        onCheckpointRestart: function () {
+          if (callbacks.onCheckpointRestart) {
+            callbacks.onCheckpointRestart();
+          }
+        },
       });
     }
   }

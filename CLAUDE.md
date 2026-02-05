@@ -92,11 +92,18 @@ audio/
 
 ## Current Games
 
-| Game | File | Subject | Mechanic |
-|------|------|---------|----------|
-| Animal Crossing | `animal-crossing.js` | Math | Lives + checkpoints, help animals cross a road |
-| Breakfast Helper | `breakfast-helper.js` | Math | Timer-based, cook food before time runs out |
-| Santa's Delivery | `santa-delivery.js` + `santa-scene.js` | Spelling | Timer-based Phaser game, spell words to deliver presents |
+All games support **both math and spelling** via `DualModeAdapter`. They appear on both the math and spelling pages.
+
+| Game | File | Mechanic |
+|------|------|----------|
+| Animal Crossing | `animal-crossing.js` | Lives + checkpoints, help animals cross a road |
+| Breakfast Helper | `breakfast-helper.js` | Timer-based, cook food before time runs out |
+| Santa's Delivery | `santa-delivery.js` + `santa-scene.js` | Timer-based Phaser game, deliver presents |
+| Cobbler's Workshop | `cobbler-game.js` + `cobbler-scene.js` | Phaser game, build shoes letter-by-letter |
+| Zoo Bedtime | `zoo-game.js` + `zoo-scene.js` | Phaser game, help animals get to bed |
+| Paper Boy | `paper-boy.js` + `paper-boy-scene.js` | Timer-based Phaser game, deliver newspapers |
+| Supermarket Cashier | `supermarket-cashier.js` + `supermarket-cashier-scene.js` | Timer-based Phaser game, scan items |
+| Doggy Daycare | `doggy-daycare.js` + `doggy-daycare-scene.js` | Timer-based Phaser game, help dogs |
 
 ## Engine Details
 

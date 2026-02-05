@@ -1,12 +1,13 @@
 /**
- * Santa's Present Delivery - Spell words to deliver presents to houses.
- * Uses Phaser 3 for scene visuals, SpellingGameBase for DOM input/HUD.
+ * Santa's Present Delivery - Deliver presents to houses by answering questions.
+ * Works with BOTH math and spelling modes via DualModeAdapter.
+ * Uses Phaser 3 for scene visuals, DualModeAdapter for unified input/HUD.
  *
- * Flow per word:
+ * Flow per question:
  * 1. House scrolls in from right
- * 2. Word is spoken, display based on presentation mode
+ * 2. Question appears (math equation or spelling word)
  * 3. Timer starts (visual bar in Phaser + countdown)
- * 4. Player spells word using tiles or keyboard
+ * 4. Player answers question
  * 5. Correct: present drops into chimney, house lights up
  * 6. Timeout: present misses, house stays dark, lose a life
  */
@@ -25,6 +26,7 @@ var SantaDelivery = (function () {
   var totalHouses = 0;
   var starsRemaining = MAX_LIVES;
   var starEls = [];
+  var currentSubject = 'spelling';
 
   function el(tag, className, textContent) {
     var e = document.createElement(tag);
@@ -35,13 +37,18 @@ var SantaDelivery = (function () {
 
   function start(options) {
     options = options || {};
-    var mode = options.mode || 'scramble';
+    var subject = options.subject || 'spelling';
+    var mode = options.mode || (subject === 'spelling' ? 'scramble' : 'choice');
     var questionCount = options.questionCount || 10;
     var presentation = options.presentation || 'audio-picture';
     var difficulty = options.difficulty || 'easy';
 
+    currentSubject = subject;
+
     // Map difficulty to input mode
-    if (difficulty === 'hard') mode = 'keyboard';
+    if (difficulty === 'hard') {
+      mode = subject === 'spelling' ? 'keyboard' : 'type';
+    }
 
     totalHouses = questionCount;
     housesDelivered = 0;
@@ -76,24 +83,29 @@ var SantaDelivery = (function () {
     // Store init function so the scene can call it when ready
     SantaDelivery._pendingInit = function (sceneRef) {
       scene = sceneRef;
-      SpellingGameBase.init({ hudContainer: hudContainer, inputContainer: inputContainer }, {
+
+      DualModeAdapter.init({
+        subject: subject,
+        containers: { hudContainer: hudContainer, inputContainer: inputContainer },
         questionCount: questionCount,
         mode: mode,
         presentation: presentation,
         showLives: false, // We use custom star bar
         wrongLosesLife: false, // We manage lives ourselves (timer-based)
         useCheckpoints: false,
-        noDistractors: true, // Only show letters in the word
+        noDistractors: true,
         timerDuration: TIMER_SECONDS,
-        onCorrect: handleCorrect,
-        onWrong: handleWrong,
-        onComplete: handleComplete,
-        onQuestionShow: handleQuestionShow,
-        onTimeout: handleTimeout,
-        onTimerTick: handleTimerTick,
-        onLetterCorrect: handleLetterCorrect,
-        onLetterWrong: handleLetterWrong,
-        onWordComplete: handleWordComplete,
+        callbacks: {
+          onQuestionShow: handleQuestionShow,
+          onCorrect: handleCorrect,
+          onWrong: handleWrong,
+          onTimeout: handleTimeout,
+          onTimerTick: handleTimerTick,
+          onComplete: handleComplete,
+          onLetterCorrect: handleLetterCorrect,
+          onLetterWrong: handleLetterWrong,
+          onWordComplete: handleWordComplete,
+        },
       });
     };
 
@@ -122,7 +134,7 @@ var SantaDelivery = (function () {
     // Show a new house in the Phaser scene
     if (scene) {
       scene.scrollHouseOut(function () {
-        scene.showHouse({ word: question.word, emoji: question.emoji });
+        scene.showHouse({ word: question.display, emoji: question.visual });
       });
     }
   }
@@ -145,9 +157,20 @@ var SantaDelivery = (function () {
   }
 
   function handleWordComplete(question) {
+    // Spelling: word completed correctly
     if (gameOver) return;
+    handleDeliverySuccess();
+  }
 
-    // Present drops into chimney
+  function handleCorrect(question, index) {
+    // Math: answer correct (for spelling, handleWordComplete handles it)
+    if (gameOver) return;
+    if (currentSubject === 'math') {
+      handleDeliverySuccess();
+    }
+  }
+
+  function handleDeliverySuccess() {
     housesDelivered++;
 
     if (scene) {
@@ -155,10 +178,6 @@ var SantaDelivery = (function () {
         // House lights up (already handled in dropPresent)
       });
     }
-  }
-
-  function handleCorrect(question, index) {
-    // Handled by handleWordComplete
   }
 
   function handleWrong(question, livesRemaining) {
@@ -190,7 +209,7 @@ var SantaDelivery = (function () {
     if (starsRemaining <= 0) {
       gameOver = true;
       gameEnded = true;
-      SpellingGameBase.stopTimer();
+      DualModeAdapter.stopTimer();
       setTimeout(function () {
         showGameOverScreen();
       }, 2500);
@@ -208,7 +227,7 @@ var SantaDelivery = (function () {
 
     // Advance to next question after showing correct answer
     setTimeout(function () {
-      SpellingGameBase.forceNextQuestion();
+      DualModeAdapter.forceNextQuestion();
     }, 2500);
   }
 
@@ -220,12 +239,18 @@ var SantaDelivery = (function () {
     }, 1500);
   }
 
-  // --- Correct Spelling Flash ---
+  // --- Correct Answer Flash ---
 
   function showCorrectSpelling(question) {
     var sceneEl = document.getElementById('game-scene');
     var flash = el('div', 'sd-answer-flash');
-    flash.textContent = question.word.toUpperCase();
+
+    if (currentSubject === 'spelling') {
+      flash.textContent = String(question.answer).toUpperCase();
+    } else {
+      flash.textContent = question.answer;
+    }
+
     sceneEl.appendChild(flash);
     setTimeout(function () { flash.remove(); }, 2200);
   }
@@ -268,7 +293,7 @@ var SantaDelivery = (function () {
       // Home button
       var homeBtn = el('button', 'sd-end-btn secondary', 'Home');
       homeBtn.addEventListener('click', function () {
-        window.location.href = 'spelling.html';
+        window.location.href = currentSubject === 'spelling' ? 'spelling.html' : 'math.html';
       });
       screen.appendChild(homeBtn);
 
@@ -303,7 +328,7 @@ var SantaDelivery = (function () {
     // Home button
     var homeBtn = el('button', 'sd-end-btn secondary', 'Home');
     homeBtn.addEventListener('click', function () {
-      window.location.href = 'spelling.html';
+      window.location.href = currentSubject === 'spelling' ? 'spelling.html' : 'math.html';
     });
     screen.appendChild(homeBtn);
 
@@ -317,7 +342,7 @@ var SantaDelivery = (function () {
       phaserGame = null;
     }
     scene = null;
-    SpellingGameBase.destroy();
+    DualModeAdapter.destroy();
   }
 
   return {

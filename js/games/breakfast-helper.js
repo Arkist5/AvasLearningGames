@@ -1,5 +1,6 @@
 /**
- * Breakfast Helper - Cook breakfast by answering math questions before the timer runs out.
+ * Breakfast Helper - Cook breakfast by answering questions before the timer runs out.
+ * Works with BOTH math and spelling modes via DualModeAdapter.
  * Each question has a 10-second countdown. If time expires, the food burns and a star is lost.
  * 5 stars lost = game over.
  */
@@ -23,6 +24,7 @@ const BreakfastHelper = (() => {
   let currentFoodIndex = 0;
   let gameOver = false;
   let gameEnded = false; // prevents double end-screen
+  let currentSubject = 'math';
 
   // DOM refs
   let starEls = [];
@@ -40,7 +42,13 @@ const BreakfastHelper = (() => {
   }
 
   function start(options = {}) {
-    const { mode = 'type', questionCount = 10, engine } = options;
+    const subject = options.subject || 'math';
+    const mode = options.mode || (subject === 'spelling' ? 'scramble' : 'type');
+    const questionCount = options.questionCount || 10;
+    const presentation = options.presentation || 'audio-picture';
+    const difficulty = options.difficulty || 'easy';
+
+    currentSubject = subject;
 
     sceneEl = document.getElementById('game-scene');
     const hudContainer = document.getElementById('game-hud-container');
@@ -57,21 +65,29 @@ const BreakfastHelper = (() => {
     // Build kitchen scene
     buildScene();
 
-    // Init game base with timer options
-    GameBase.init({ hudContainer, inputContainer }, {
-      engine,
+    // Init via DualModeAdapter (handles math or spelling engine)
+    DualModeAdapter.init({
+      subject: subject,
+      containers: { hudContainer, inputContainer },
       questionCount,
       mode,
+      presentation,
       showLives: false,
       wrongLosesLife: false,
       useCheckpoints: false,
+      noDistractors: true,
       timerDuration: TIMER_SECONDS,
-      onCorrect: handleCorrect,
-      onWrong: handleWrong,
-      onComplete: handleComplete,
-      onQuestionShow: handleQuestionShow,
-      onTimeout: handleTimeout,
-      onTimerTick: handleTimerTick,
+      callbacks: {
+        onCorrect: handleCorrect,
+        onWrong: handleWrong,
+        onComplete: handleComplete,
+        onQuestionShow: handleQuestionShow,
+        onTimeout: handleTimeout,
+        onTimerTick: handleTimerTick,
+        onLetterCorrect: handleLetterCorrect,
+        onLetterWrong: handleLetterWrong,
+        onWordComplete: handleWordComplete,
+      },
     });
   }
 
@@ -163,9 +179,40 @@ const BreakfastHelper = (() => {
     }
   }
 
-  function handleCorrect(question, index) {
-    if (gameOver) return;
+  function handleLetterCorrect(letter, position) {
+    // Small visual feedback - food sizzles positively
+  }
 
+  function handleLetterWrong(letter, position) {
+    if (gameOver) return;
+    // Brief sizzle effect for wrong letter
+    if (foodEl) {
+      foodEl.className = 'bh-food-on-stove sizzle';
+      setTimeout(() => {
+        if (foodEl && !gameOver) {
+          foodEl.className = 'bh-food-on-stove cooking';
+        }
+      }, 300);
+    }
+  }
+
+  function handleWordComplete(question) {
+    // Spelling: word completed correctly
+    if (gameOver) return;
+    if (currentSubject === 'spelling') {
+      handleFoodCooked();
+    }
+  }
+
+  function handleCorrect(question, index) {
+    // Math: answer correct (for spelling, handleWordComplete handles it)
+    if (gameOver) return;
+    if (currentSubject === 'math') {
+      handleFoodCooked();
+    }
+  }
+
+  function handleFoodCooked() {
     // Food cooked - slide to plate animation
     foodEl.className = 'bh-food-on-stove cooked';
 
@@ -206,7 +253,11 @@ const BreakfastHelper = (() => {
 
     // Flash correct answer
     const flash = el('div', 'bh-answer-flash');
-    flash.textContent = 'The answer was ' + correctAnswer + '!';
+    if (currentSubject === 'spelling') {
+      flash.textContent = String(correctAnswer).toUpperCase();
+    } else {
+      flash.textContent = 'The answer was ' + correctAnswer + '!';
+    }
     sceneEl.querySelector('.bh-kitchen').appendChild(flash);
 
     // Lose a star
@@ -221,7 +272,7 @@ const BreakfastHelper = (() => {
     if (starsRemaining <= 0) {
       gameOver = true;
       gameEnded = true;
-      GameBase.stopTimer();
+      DualModeAdapter.stopTimer();
       setTimeout(() => {
         flash.remove();
         showGameOverScreen();
@@ -242,7 +293,7 @@ const BreakfastHelper = (() => {
     // Otherwise advance to next question after delay
     setTimeout(() => {
       flash.remove();
-      GameBase.forceNextQuestion();
+      DualModeAdapter.forceNextQuestion();
     }, 2500);
   }
 
@@ -358,7 +409,7 @@ const BreakfastHelper = (() => {
 
   function destroy() {
     gameOver = true;
-    GameBase.destroy();
+    DualModeAdapter.destroy();
   }
 
   return {
