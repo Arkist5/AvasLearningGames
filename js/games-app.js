@@ -14,6 +14,7 @@
     { id: 'santa-delivery', name: "Santa's Delivery", icon: '\uD83C\uDF85', playable: true },
     { id: 'cobbler', name: "Cobbler's Workshop", icon: '\uD83D\uDC5E', playable: true },
     { id: 'zoo', name: 'Zoo Bedtime', icon: '\uD83E\uDD81', playable: true },
+    { id: 'is-it-cake', name: 'Is It Cake?', icon: '\uD83C\uDF82', playable: true },
     // Coming soon
     { id: 'traffic-jam', name: 'Traffic Jam', icon: '\uD83D\uDE97', playable: false },
     { id: 'baking-contest', name: 'Baking Contest', icon: '\uD83C\uDF82', playable: false },

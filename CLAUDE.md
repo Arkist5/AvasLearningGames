@@ -105,6 +105,7 @@ All games support **both math and spelling** via `DualModeAdapter`. They appear 
 | Paper Boy | `paper-boy.js` + `paper-boy-scene.js` | Timer-based Phaser game, deliver newspapers |
 | Supermarket Cashier | `supermarket-cashier.js` + `supermarket-cashier-scene.js` | Timer-based Phaser game, scan items |
 | Doggy Daycare | `doggy-daycare.js` + `doggy-daycare-scene.js` | Timer-based Phaser game, help dogs |
+| Is It Cake? | `is-it-cake.js` + `is-it-cake-scene.js` | Timer-based Phaser game, find hidden cakes |
 
 ## Engine Details
 
