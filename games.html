@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Ava's Games">
+  <meta name="theme-color" content="#6c5ce7">
+  <title>Games - Ava's Learning Games</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/subject-page.css">
+</head>
+<body>
+  <div class="subject-page" id="games-page">
+    <a class="subject-back-btn" href="index.html" aria-label="Back to hub">&larr;</a>
+
+    <h1 class="subject-title" id="games-title">Math Games</h1>
+    <p class="subject-subtitle" id="games-subtitle">Pick a game and let's practice!</p>
+
+    <!-- Subject Toggle -->
+    <div class="subject-picker" id="subject-picker">
+      <button class="subject-picker-btn math active" data-subject="math">&#x2795; Math</button>
+      <button class="subject-picker-btn spelling" data-subject="spelling">&#x1F524; Spelling</button>
+    </div>
+
+    <!-- Math Settings -->
+    <div class="subject-settings" id="math-settings">
+      <label class="subject-settings-label">How do you want to answer?</label>
+      <div class="subject-toggle" id="math-mode-toggle">
+        <button class="subject-toggle-btn active" data-mode="type">Type Answer</button>
+        <button class="subject-toggle-btn" data-mode="choice">Pick Answer</button>
+      </div>
+
+      <label class="subject-settings-label" style="margin-top: var(--space-lg)">How many questions?</label>
+      <div class="subject-toggle" id="math-count-buttons">
+        <button class="subject-toggle-btn count-btn active" data-count="10">10</button>
+        <button class="subject-toggle-btn count-btn" data-count="20">20</button>
+        <button class="subject-toggle-btn count-btn" data-count="30">30</button>
+        <button class="subject-toggle-btn count-btn" data-count="40">40</button>
+        <button class="subject-toggle-btn count-btn" data-count="50">50</button>
+      </div>
+    </div>
+
+    <!-- Spelling Settings -->
+    <div class="subject-settings" id="spelling-settings" style="display: none">
+      <label class="subject-settings-label">Words to practice</label>
+      <textarea class="spelling-word-input" id="spelling-word-input" placeholder="Type or paste words here, one per line..." rows="4"></textarea>
+      <div class="spelling-word-count" id="spelling-word-count">0 words</div>
+
+      <label class="subject-settings-label" style="margin-top: var(--space-lg)">Game mode</label>
+      <div class="subject-toggle" id="spelling-timed-toggle">
+        <button class="subject-toggle-btn spelling" data-mode="timed">&#x23F1;&#xFE0F; Timed</button>
+        <button class="subject-toggle-btn spelling" data-mode="relaxed">&#x1F60C; Relaxed</button>
+      </div>
+    </div>
+
+    <!-- Game Grid -->
+    <div class="subject-game-grid" id="game-grid"></div>
+
+    <button class="audio-toggle" id="audio-toggle" aria-label="Toggle audio">
+      <span id="audio-icon">&#x1f50a;</span>
+    </button>
+  </div>
+
+  <script src="js/audio-manager.js"></script>
+  <script src="js/games-app.js"></script>
+</body>
+</html>

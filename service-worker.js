@@ -1,7 +1,8 @@
-const CACHE_NAME = 'avagames-v15';
+const CACHE_NAME = 'avagames-v16';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
+  '/games.html',
   '/math.html',
   '/spelling.html',
   '/story-reader.html',
@@ -19,8 +20,7 @@ const ASSETS_TO_CACHE = [
   '/css/doggy-daycare.css',
   '/css/story-reader.css',
   '/js/hub.js',
-  '/js/math-app.js',
-  '/js/spelling-app.js',
+  '/js/games-app.js',
   '/js/story-reader.js',
   '/js/math-engine.js',
   '/js/spelling-engine.js',

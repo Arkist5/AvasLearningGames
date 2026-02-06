@@ -41,33 +41,34 @@ game.html
 
 Phaser games are listed in `PHASER_GAMES` array in `game.html`. The CDN script is loaded dynamically before launching the game.
 
-### Adding a New Math Game
+### Adding a New Game
 
 1. Create `js/games/your-game.js` implementing `start(container, options)` and `destroy()`
 2. Create `css/your-game.css` for game-specific styles
-3. Register in the game map in `game.html` and the game registry in `js/math-app.js`
-4. Use `GameBase.init()` to get HUD, input, and math engine integration for free
-
-### Adding a New Spelling Game
-
-1. Create `js/games/your-game.js` implementing `start(options)` and `destroy()`
-2. Create CSS file for game-specific styles
-3. Register in `game.html` launch logic and in `js/spelling-app.js` GAMES array
-4. Use `SpellingGameBase.init()` for HUD, letter input, and spelling engine integration
+3. Register in the game map in `game.html` and in the GAMES array in `js/games-app.js`
+4. Use `DualModeAdapter` to support both math and spelling subjects
 5. If using Phaser, add game ID to `PHASER_GAMES` array in `game.html`
 
 ### Game Launch Flow
 
 Games launch via `game.html` with URL params:
-- Math: `?game=animal-crossing&mode=type&count=20`
+- Math: `?game=animal-crossing&mode=type&count=20&subject=math`
 - Spelling: `?game=santa-delivery&subject=spelling&difficulty=easy&presentation=audio-picture`
+
+### Page Flow
+
+```
+index.html (Hub) → games.html (unified subject toggle + 8 games + settings)
+                 → story-reader.html
+math.html → redirects to games.html?subject=math
+spelling.html → redirects to games.html?subject=spelling
+```
 
 ## Project Structure
 
 ```
 js/
-  math-app.js           # Math page logic & game registry
-  spelling-app.js       # Spelling page logic & game registry
+  games-app.js          # Unified games page logic (subject toggle, game grid, settings)
   math-engine.js        # Core math engine
   spelling-engine.js    # Core spelling engine
   audio-manager.js      # Audio system (SFX, question/answer audio)
@@ -92,7 +93,7 @@ audio/
 
 ## Current Games
 
-All games support **both math and spelling** via `DualModeAdapter`. They appear on both the math and spelling pages.
+All games support **both math and spelling** via `DualModeAdapter`. They appear on the unified `games.html` page with a subject toggle.
 
 | Game | File | Mechanic |
 |------|------|----------|
