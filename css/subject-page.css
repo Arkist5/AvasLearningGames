@@ -1,14 +1,15 @@
 /* Shared Subject Page Styles (math.html, spelling.html) */
 
 .subject-page {
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   background: linear-gradient(180deg, #e8f4fd 0%, #f0f4ff 50%, #fef3f0 100%);
   padding: var(--space-lg);
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Back button */
